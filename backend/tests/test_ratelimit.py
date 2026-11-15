@@ -1,4 +1,4 @@
-from orderlens.ratelimit import RateLimiter, allow_request
+from truemetric.ratelimit import RateLimiter, allow_request
 
 NOON = 1_800_000_000.0  # an arbitrary moment, in seconds since the epoch
 

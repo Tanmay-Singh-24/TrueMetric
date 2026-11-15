@@ -1,6 +1,6 @@
 import pytest
 
-from orderlens.config import settings
+from truemetric.config import settings
 
 NO_DATABASE_REASON = "DATABASE_URL is empty; run `uv run --env-file .env pytest` to include it"
 

@@ -1,4 +1,4 @@
-# OrderLens evaluation questions. Written before either configuration was run.
+# TrueMetric evaluation questions. Written before either configuration was run.
 #
 # category:        metric | freeform | ambiguous | refuse
 # expected_metric: the metric the router should choose (metric questions only)

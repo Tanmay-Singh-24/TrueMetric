@@ -23,9 +23,9 @@ import psycopg
 import yaml
 
 from evals.scoring import results_match, score
-from orderlens.db import run_query
-from orderlens.graph import ask
-from orderlens.validator import UnsafeSQL, validate_sql
+from truemetric.db import run_query
+from truemetric.graph import ask
+from truemetric.validator import UnsafeSQL, validate_sql
 
 EVAL_DIR = Path(__file__).resolve().parent
 QUESTIONS_PATH = EVAL_DIR / "questions.yaml"
@@ -39,7 +39,7 @@ MAX_TRIES = 3
 BACKOFF_SECONDS = 60
 CATEGORIES = ("metric", "freeform", "ambiguous", "refuse")
 
-# Token counts of the LLM calls for the current question, read from orderlens.llm's logs.
+# Token counts of the LLM calls for the current question, read from truemetric.llm's logs.
 call_tokens: list[int] = []
 
 
@@ -260,7 +260,7 @@ def report() -> None:
 
 def main() -> None:
     """Parse the command line and run the chosen action."""
-    parser = argparse.ArgumentParser(description="Run the OrderLens evaluation.")
+    parser = argparse.ArgumentParser(description="Run the TrueMetric evaluation.")
     parser.add_argument("--config", choices=list(MODES))
     parser.add_argument("--ids", help="comma-separated question ids to run")
     parser.add_argument("--resume", action="store_true", help="skip questions already saved")
@@ -274,7 +274,7 @@ def main() -> None:
         return
     if arguments.config is None:
         parser.error("choose --config, --check-gold or --report")
-    llm_logger = logging.getLogger("orderlens.llm")
+    llm_logger = logging.getLogger("truemetric.llm")
     llm_logger.setLevel(logging.INFO)
     llm_logger.addFilter(count_tokens)
     ids = arguments.ids.split(",") if arguments.ids else None

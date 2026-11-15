@@ -3,8 +3,8 @@ from decimal import Decimal
 
 import pytest
 
-from orderlens.audit import build_audit, format_answer, format_headline
-from orderlens.metrics.registry import get_metric
+from truemetric.audit import build_audit, format_answer, format_headline
+from truemetric.metrics.registry import get_metric
 
 
 @pytest.mark.parametrize(

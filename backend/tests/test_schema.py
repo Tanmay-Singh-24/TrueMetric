@@ -1,4 +1,4 @@
-from orderlens.schema import TABLE_COLUMNS, parse_tables
+from truemetric.schema import TABLE_COLUMNS, parse_tables
 
 
 def test_schema_has_the_seven_tables() -> None:

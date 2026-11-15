@@ -1,8 +1,8 @@
 import pytest
 
-from orderlens import summarize as summarize_module
-from orderlens.llm import LLMRateLimited
-from orderlens.summarize import FALLBACK_ANSWER, summarize
+from truemetric import summarize as summarize_module
+from truemetric.llm import LLMRateLimited
+from truemetric.summarize import FALLBACK_ANSWER, summarize
 
 
 def test_the_prompt_says_what_the_rows_contain(monkeypatch: pytest.MonkeyPatch) -> None:

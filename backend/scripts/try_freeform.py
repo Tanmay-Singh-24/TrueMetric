@@ -14,9 +14,9 @@ import logging
 import psycopg
 from terminal import print_table
 
-from orderlens.db import run_query
-from orderlens.freeform import GeneratedSQL, generate_sql
-from orderlens.validator import UnsafeSQL, validate_sql
+from truemetric.db import run_query
+from truemetric.freeform import GeneratedSQL, generate_sql
+from truemetric.validator import UnsafeSQL, validate_sql
 
 MAX_ATTEMPTS = 2
 

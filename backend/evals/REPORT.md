@@ -1,4 +1,4 @@
-# OrderLens — Evaluation report
+# TrueMetric — Evaluation report
 
 Run on 2026-11-15 with `openai/gpt-oss-120b` on Groq (reasoning effort "low",
 temperature 0), one run per configuration. Every number below comes from

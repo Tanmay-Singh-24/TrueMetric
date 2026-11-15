@@ -5,7 +5,7 @@ from typing import Any
 
 from psycopg_pool import ConnectionPool
 
-from orderlens.config import settings
+from truemetric.config import settings
 
 
 @cache

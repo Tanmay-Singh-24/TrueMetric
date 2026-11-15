@@ -11,21 +11,21 @@ from typing import Literal, TypedDict
 import psycopg
 from langgraph.graph import END, START, StateGraph
 
-from orderlens.audit import Audit, build_audit, format_answer, format_headline
-from orderlens.config import settings
-from orderlens.db import run_query
-from orderlens.freeform import generate_sql
-from orderlens.llm import LLMError, LLMRateLimited
-from orderlens.metrics.registry import get_metric, metric_sql, run_metric, validate_args
-from orderlens.router import (
+from truemetric.audit import Audit, build_audit, format_answer, format_headline
+from truemetric.config import settings
+from truemetric.db import run_query
+from truemetric.freeform import generate_sql
+from truemetric.llm import LLMError, LLMRateLimited
+from truemetric.metrics.registry import get_metric, metric_sql, run_metric, validate_args
+from truemetric.router import (
     RouterDecision,
     build_clarification,
     check_decision,
     filter_args,
     route_question,
 )
-from orderlens.summarize import FALLBACK_ANSWER, summarize
-from orderlens.validator import UnsafeSQL, validate_sql
+from truemetric.summarize import FALLBACK_ANSWER, summarize
+from truemetric.validator import UnsafeSQL, validate_sql
 
 logger = logging.getLogger(__name__)
 

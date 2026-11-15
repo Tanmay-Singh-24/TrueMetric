@@ -12,14 +12,14 @@ import logging
 
 from terminal import print_table
 
-from orderlens.graph import ask
+from truemetric.graph import ask
 
 MAX_ROWS_SHOWN = 20
 
 
 def parse_arguments() -> argparse.Namespace:
     """Read the question and the optional settings of ask()."""
-    parser = argparse.ArgumentParser(description="Ask OrderLens one question.")
+    parser = argparse.ArgumentParser(description="Ask TrueMetric one question.")
     parser.add_argument("question")
     parser.add_argument("--metric-id", help="the metric chosen from a clarify question")
     parser.add_argument("--mode", choices=["full", "freeform_only"], default="full")

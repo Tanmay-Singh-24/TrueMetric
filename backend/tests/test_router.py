@@ -2,8 +2,8 @@
 
 import pytest
 
-from orderlens.metrics import registry
-from orderlens.router import RouterDecision, build_clarification, check_decision
+from truemetric.metrics import registry
+from truemetric.router import RouterDecision, build_clarification, check_decision
 
 
 @pytest.fixture(autouse=True)

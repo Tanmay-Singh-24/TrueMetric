@@ -1,4 +1,4 @@
-# OrderLens — Metric definitions
+# TrueMetric — Metric definitions
 
 The ten verified metrics. Each has one definition, one SQL file and reference values to
 check it against. **Do not change a definition or its SQL without asking** — every number

@@ -1,4 +1,4 @@
-"""Download the eight Olist CSV files used by OrderLens into backend/data/raw/.
+"""Download the eight Olist CSV files used by TrueMetric into backend/data/raw/.
 
 Source: https://github.com/olist/work-at-olist-data (MIT licence). The geolocation file
 is not downloaded because nothing uses it.

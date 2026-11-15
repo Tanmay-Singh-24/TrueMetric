@@ -2,10 +2,10 @@
 
 from pydantic import BaseModel
 
-from orderlens.llm import invoke_structured
-from orderlens.lookups import known_categories
-from orderlens.metrics.catalog import METRICS
-from orderlens.schema import SCHEMA_SQL
+from truemetric.llm import invoke_structured
+from truemetric.lookups import known_categories
+from truemetric.metrics.catalog import METRICS
+from truemetric.schema import SCHEMA_SQL
 
 
 class GeneratedSQL(BaseModel):

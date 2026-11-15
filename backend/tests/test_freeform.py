@@ -1,7 +1,7 @@
 import pytest
 
-from orderlens import freeform
-from orderlens.freeform import system_prompt
+from truemetric import freeform
+from truemetric.freeform import system_prompt
 
 
 def test_the_prompt_lists_the_category_names(monkeypatch: pytest.MonkeyPatch) -> None:

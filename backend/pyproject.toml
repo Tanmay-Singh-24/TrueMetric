@@ -1,5 +1,5 @@
 [project]
-name = "orderlens"
+name = "truemetric"
 version = "0.1.0"
 description = "Plain-English questions over e-commerce orders, answered by verified metrics first."
 requires-python = ">=3.12,<3.13"

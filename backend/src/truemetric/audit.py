@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel
 
-from orderlens.metrics.catalog import Metric
+from truemetric.metrics.catalog import Metric
 
 HEADLINE_FORMATS = {
     "brl": "R$ {:,.2f}",

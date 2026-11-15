@@ -17,4 +17,4 @@ RUN uv sync --frozen --no-dev
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Render sets $PORT; 8000 is the local default.
-CMD ["sh", "-c", "uvicorn orderlens.api:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn truemetric.api:app --host 0.0.0.0 --port ${PORT:-8000}"]

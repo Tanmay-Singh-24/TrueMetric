@@ -1,6 +1,6 @@
-# OrderLens
+# TrueMetric
 
-OrderLens answers plain-English questions about e-commerce order data (the public Olist
+TrueMetric answers plain-English questions about e-commerce order data (the public Olist
 dataset). A question is first matched against a small catalogue of hand-verified metrics;
 when one fits, the app runs that metric's fixed SQL with bound parameters, so the language
 model never writes the SQL. Only when no metric fits does the model write its own query,

@@ -1,6 +1,6 @@
-# OrderLens — Architecture
+# TrueMetric — Architecture
 
-OrderLens answers plain-English questions about e-commerce order data. Its one idea:
+TrueMetric answers plain-English questions about e-commerce order data. Its one idea:
 
 > **The LLM decides *what* the user is asking for. Verified code decides *how* to compute it.**
 
@@ -9,8 +9,8 @@ fits, the app runs that metric's fixed SQL with bound parameters — the LLM nev
 SQL. Only when no metric fits does the LLM write its own SQL, and that SQL must pass a
 validator before it runs. An eval measures both paths on the same questions.
 
-"OrderLens" is a working name. It appears in the package name and README only, so it is
-cheap to rename.
+The project was built under the working name OrderLens and renamed TrueMetric before
+release.
 
 Read this file, then [METRICS.md](METRICS.md), then [BUILD_PLAN.md](BUILD_PLAN.md).
 
@@ -221,7 +221,7 @@ Loader decisions (record these in the README's data section):
 | Role | Used by | Can do |
 |---|---|---|
 | Owner (Neon default) | `scripts/setup_db.py` only | Everything |
-| `orderlens_readonly` | The app, the eval, tests | `SELECT` on the seven tables. `statement_timeout = 5s` set on the role |
+| `truemetric_readonly` | The app, the eval, tests | `SELECT` on the seven tables. `statement_timeout = 5s` set on the role |
 
 **The deployed app holds only the read-only credential.** The app never writes to the
 database, so there is no second app role.
@@ -231,7 +231,7 @@ database, so there is no second app role.
 ## 5. Repository layout
 
 ```
-orderlens/
+truemetric/
   CLAUDE.md                 rules for the builder
   README.md
   docs/                     ARCHITECTURE, METRICS, BUILD_PLAN, STUDY_NOTES
@@ -248,7 +248,7 @@ orderlens/
       reference_values.py   pure-Python metric values from the raw CSVs (no SQL)
       run_metric.py         run one metric from the terminal
       ask.py                ask one question from the terminal
-    src/orderlens/
+    src/truemetric/
       config.py             settings from environment variables
       db.py                 read-only connection pool, run_query()
       schema.py             parses sql/schema.sql: table/column map + prompt text

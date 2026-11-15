@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from orderlens.audit import format_headline
-from orderlens.metrics.registry import get_metric, run_metric, validate_args
+from truemetric.audit import format_headline
+from truemetric.metrics.registry import get_metric, run_metric, validate_args
 
 pytestmark = pytest.mark.db
 

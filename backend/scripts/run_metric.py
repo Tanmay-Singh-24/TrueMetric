@@ -10,9 +10,9 @@ import time
 
 from terminal import print_table
 
-from orderlens.audit import build_audit, format_headline
-from orderlens.metrics.catalog import METRICS
-from orderlens.metrics.registry import (
+from truemetric.audit import build_audit, format_headline
+from truemetric.metrics.catalog import METRICS
+from truemetric.metrics.registry import (
     InvalidArgs,
     get_metric,
     metric_sql,

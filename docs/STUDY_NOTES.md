@@ -1,9 +1,9 @@
-# OrderLens — Study notes
+# TrueMetric — Study notes
 
 ## Phase 0 — Scaffold
 
 **What was built:**
-- A git repository, and a `backend/` Python package named `orderlens` (managed with `uv`,
+- A git repository, and a `backend/` Python package named `truemetric` (managed with `uv`,
   `src/` layout, pinned to Python 3.12).
 - `config.py`: one frozen `Settings` dataclass filled from environment variables, plus
   `.env.example` listing every variable.
@@ -39,7 +39,7 @@
 - `sql/schema.sql` (the seven tables, with the comments the LLM will read) and
   `sql/indexes.sql`; `scripts/download_data.py` fetches the eight CSVs.
 - `scripts/setup_db.py`: drops and recreates the tables, loads the CSVs with `COPY`,
-  creates indexes and the `orderlens_readonly` role, then prints the facts to check.
+  creates indexes and the `truemetric_readonly` role, then prints the facts to check.
 - `db.py` (`run_query()` over a small read-only pool), `schema.py` (parses `schema.sql`
   into `{table: {column: type}}`), `lookups.py` (`known_states()`, `known_categories()`).
 

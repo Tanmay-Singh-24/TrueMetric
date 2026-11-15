@@ -9,7 +9,7 @@ from langchain_core.runnables import Runnable
 from langchain_groq import ChatGroq
 from pydantic import BaseModel
 
-from orderlens.config import settings
+from truemetric.config import settings
 
 logger = logging.getLogger(__name__)
 

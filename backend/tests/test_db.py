@@ -3,8 +3,8 @@ import time
 import psycopg.errors
 import pytest
 
-from orderlens.db import run_query
-from orderlens.lookups import known_categories, known_states
+from truemetric.db import run_query
+from truemetric.lookups import known_categories, known_states
 
 pytestmark = pytest.mark.db
 

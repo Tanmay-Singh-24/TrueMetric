@@ -2,7 +2,7 @@
 
 import logging
 
-from orderlens.llm import LLMError, LLMRateLimited, invoke_text
+from truemetric.llm import LLMError, LLMRateLimited, invoke_text
 
 logger = logging.getLogger(__name__)
 

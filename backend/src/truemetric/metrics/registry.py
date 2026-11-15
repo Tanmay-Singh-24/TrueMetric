@@ -4,9 +4,9 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from orderlens.db import run_query
-from orderlens.lookups import known_categories, known_states
-from orderlens.metrics.catalog import METRICS, Metric
+from truemetric.db import run_query
+from truemetric.lookups import known_categories, known_states
+from truemetric.metrics.catalog import METRICS, Metric
 
 SQL_DIR = Path(__file__).parent / "sql"
 DATA_START = date(2016, 9, 4)

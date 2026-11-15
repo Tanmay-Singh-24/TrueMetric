@@ -2,7 +2,7 @@
 
 from functools import cache
 
-from orderlens.db import run_query
+from truemetric.db import run_query
 
 
 @cache

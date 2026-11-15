@@ -58,7 +58,7 @@ export function App() {
   return (
     <main>
       <header>
-        <h1>OrderLens</h1>
+        <h1>TrueMetric</h1>
         <p className="muted">
           Questions about 99,441 orders from a Brazilian online store (2016–2018). Verified
           metrics answer first; anything else becomes SQL that is checked and run read-only.

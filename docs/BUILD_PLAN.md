@@ -1,4 +1,4 @@
-# OrderLens — Build plan
+# TrueMetric — Build plan
 
 Nine phases. Build them in order, one at a time. Each phase ends with its checks passing,
 a commit, an entry in `docs/STUDY_NOTES.md`, and a stop for review (see CLAUDE.md).
@@ -24,7 +24,7 @@ a phase needs it, stop and ask.
 **Build**
 
 - `git init`, `.gitignore` (`.env`, `data/`, `node_modules/`, `__pycache__/`, `.venv/`).
-- `backend/` as a `uv` package named `orderlens` with the `src/` layout.
+- `backend/` as a `uv` package named `truemetric` with the `src/` layout.
 - `config.py` with the `Settings` object, `.env.example` with every variable from
   ARCHITECTURE.md section 8.
 - `ruff` configured in `pyproject.toml` (line length 100), `pytest` configured.
@@ -35,7 +35,7 @@ a phase needs it, stop and ask.
 
 - `uv run ruff check .` and `uv run ruff format --check .` pass.
 - `uv run pytest` passes (one test for `/health`).
-- `uv run uvicorn orderlens.api:app` serves `/health`.
+- `uv run uvicorn truemetric.api:app` serves `/health`.
 
 ---
 
@@ -50,7 +50,7 @@ a phase needs it, stop and ask.
   2. load the CSVs with `COPY`, in foreign-key order, applying the loader decisions in
      section 4.3 (empty strings to NULL, category resolved, unused columns skipped);
   3. create the indexes;
-  4. create or update `orderlens_readonly`: `SELECT` on the seven tables only,
+  4. create or update `truemetric_readonly`: `SELECT` on the seven tables only,
      `statement_timeout = '5s'`;
   5. print row counts, the status breakdown and the date window.
 - `db.py`: a small connection pool on `DATABASE_URL` and

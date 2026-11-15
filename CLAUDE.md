@@ -1,4 +1,4 @@
-# OrderLens — rules for the builder
+# TrueMetric — rules for the builder
 
 You are implementing a project that has already been designed. The design is in:
 

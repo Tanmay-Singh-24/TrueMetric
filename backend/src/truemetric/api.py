@@ -11,16 +11,16 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from orderlens.audit import Audit
-from orderlens.config import settings
-from orderlens.graph import ask
-from orderlens.metrics.catalog import METRICS
-from orderlens.ratelimit import RateLimiter, allow_request
+from truemetric.audit import Audit
+from truemetric.config import settings
+from truemetric.graph import ask
+from truemetric.metrics.catalog import METRICS
+from truemetric.ratelimit import RateLimiter, allow_request
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="OrderLens")
+app = FastAPI(title="TrueMetric")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,

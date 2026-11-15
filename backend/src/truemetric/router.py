@@ -5,10 +5,10 @@ from typing import Any, Literal
 
 from pydantic import BaseModel
 
-from orderlens.llm import invoke_structured
-from orderlens.lookups import known_categories
-from orderlens.metrics.catalog import METRICS
-from orderlens.metrics.registry import (
+from truemetric.llm import invoke_structured
+from truemetric.lookups import known_categories
+from truemetric.metrics.catalog import METRICS
+from truemetric.metrics.registry import (
     DATA_END,
     DATA_START,
     InvalidArgs,

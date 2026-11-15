@@ -3,9 +3,9 @@ from datetime import date
 
 import pytest
 
-from orderlens.metrics import registry
-from orderlens.metrics.catalog import METRICS
-from orderlens.metrics.registry import InvalidArgs, get_metric, metric_sql, validate_args
+from truemetric.metrics import registry
+from truemetric.metrics.catalog import METRICS
+from truemetric.metrics.registry import InvalidArgs, get_metric, metric_sql, validate_args
 
 
 @pytest.fixture(autouse=True)

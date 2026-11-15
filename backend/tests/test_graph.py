@@ -2,10 +2,10 @@
 
 import pytest
 
-from orderlens import graph
-from orderlens.freeform import GeneratedSQL
-from orderlens.llm import LLMError, LLMRateLimited
-from orderlens.router import RouterDecision
+from truemetric import graph
+from truemetric.freeform import GeneratedSQL
+from truemetric.llm import LLMError, LLMRateLimited
+from truemetric.router import RouterDecision
 
 
 def decision(**fields: object) -> RouterDecision:

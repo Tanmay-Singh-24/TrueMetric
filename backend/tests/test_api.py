@@ -5,8 +5,8 @@ from decimal import Decimal
 import pytest
 from fastapi.testclient import TestClient
 
-from orderlens import api
-from orderlens.ratelimit import RateLimiter
+from truemetric import api
+from truemetric.ratelimit import RateLimiter
 
 client = TestClient(api.app)
 

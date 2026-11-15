@@ -1,4 +1,4 @@
-// Mirrors the API's response models in backend/src/orderlens/api.py.
+// Mirrors the API's response models in backend/src/truemetric/api.py.
 
 export type Status = "answered" | "clarify" | "refused" | "failed";
 

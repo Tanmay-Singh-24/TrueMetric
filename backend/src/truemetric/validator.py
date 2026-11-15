@@ -6,7 +6,7 @@ from sqlglot import exp
 from sqlglot.errors import OptimizeError, ParseError, TokenError
 from sqlglot.optimizer.qualify import qualify
 
-from orderlens.schema import TABLE_COLUMNS
+from truemetric.schema import TABLE_COLUMNS
 
 MAX_ROWS = 200
 

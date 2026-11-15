@@ -2,10 +2,10 @@ import re
 
 import pytest
 
-from orderlens.db import run_query
-from orderlens.metrics.catalog import METRICS, Metric
-from orderlens.metrics.registry import metric_sql
-from orderlens.validator import MAX_ROWS, UnsafeSQL, validate_sql
+from truemetric.db import run_query
+from truemetric.metrics.catalog import METRICS, Metric
+from truemetric.metrics.registry import metric_sql
+from truemetric.validator import MAX_ROWS, UnsafeSQL, validate_sql
 
 ACCEPTED = {
     "plain select": "SELECT seller_id, seller_state FROM sellers",

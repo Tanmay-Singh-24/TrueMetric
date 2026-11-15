@@ -1,4 +1,4 @@
-"""Create the OrderLens tables, load the Olist CSVs and create the read-only role.
+"""Create the TrueMetric tables, load the Olist CSVs and create the read-only role.
 
 Runs as the database owner (OWNER_DATABASE_URL). Safe to run twice: tables are dropped
 and recreated, and the role is created or updated. Everything happens in one
@@ -14,11 +14,11 @@ from pathlib import Path
 import psycopg
 from psycopg import sql
 
-from orderlens.config import settings
+from truemetric.config import settings
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 RAW_DIR = BACKEND_DIR / "data" / "raw"
-READONLY_ROLE = "orderlens_readonly"
+READONLY_ROLE = "truemetric_readonly"
 TABLES_IN_LOAD_ORDER = [
     "customers",
     "sellers",
