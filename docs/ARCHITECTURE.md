@@ -254,8 +254,8 @@ orderlens/
       lookups.py            known categories and states, read once from the DB
       llm.py                the one place that creates the Groq chat model
       metrics/
-        catalog.py          the 10 Metric definitions
-        registry.py         Metric dataclass, get_metric(), validate_args(), run_metric()
+        catalog.py          Metric dataclass and the 10 Metric definitions
+        registry.py         get_metric(), validate_args(), run_metric()
         sql/<metric_id>.sql one file per metric
       router.py             RouterDecision, route_question()
       freeform.py           generate_sql(): prompt + structured output
