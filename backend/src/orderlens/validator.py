@@ -28,6 +28,9 @@ ALLOWED_FUNCTIONS = {
     exp.If: "CASE",  # sqlglot stores each WHEN branch of a CASE as an If node
     exp.TimestampTrunc: "DATE_TRUNC",  # date_trunc on a timestamp
     exp.DateTrunc: "DATE_TRUNC",  # date_trunc on a date
+    # Added after the first eval run: DATE(x) is the function form of CAST(x AS DATE), and
+    # the baseline used it three times; rejecting it cost a retry each time.
+    exp.Date: "DATE",
     exp.Extract: "EXTRACT",
     exp.Lower: "LOWER",
     exp.Upper: "UPPER",

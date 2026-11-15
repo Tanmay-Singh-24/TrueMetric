@@ -218,6 +218,52 @@
   about 3,400–3,500 on the free-form path, with the summary. The router prompt alone is
   about 1,450 input tokens.
 
+## Phase 5 — Evaluation
+
+**What was built:**
+- `evals/questions.yaml`: 36 questions (20 metric, 8 free-form, 4 ambiguous, 4 refuse)
+  with gold SQL, committed before either configuration ran.
+- `evals/scoring.py` (compare result rows, not SQL), `evals/run_eval.py` (`--config`,
+  `--ids`, `--resume`, `--check-gold`, `--report`), and `evals/REPORT.md`.
+
+**Why it is built this way:**
+- Scoring compares values, not column names: each gold value must appear in a different
+  cell of a result row, numbers within 0.01, text ignoring case, timestamps by day. So
+  `SUM(price) AS revenue_brl` and `AS revenue` both count as right.
+- Gold SQL for metric questions is written differently from the templates and checked
+  against the Python reference values, so a shared mistake would have to be made twice.
+- The baseline gets the same definitions and synonyms as the router, so the comparison
+  measures SQL, not knowledge of the definitions.
+- The runner saves after every question, paces itself by the tokens each question used
+  (6,000 a minute, under Groq's 8,000), and never scores rate-limit or outage failures.
+- `ask()` returns a `failure` object (reason, error, last SQL) so the report can tell a
+  validator rejection from a SQL error; the API leaves it out.
+
+**What went wrong:**
+- The result was much smaller than hoped: full 27/28, baseline 26/28 on the head-to-head
+  questions. The one difference (m08) came from the router knowing the category names,
+  not from the baseline writing worse SQL; the row-multiplication trap did not catch it.
+- The validator rejected `DATE(x)`, a normal Postgres function, on three baseline first
+  attempts. It was added to the allowlist and the affected questions were re-run in both
+  configurations; the pass/fail results did not change.
+- The results file kept only the final attempt, so the first-attempt errors were read
+  from the LangSmith traces.
+
+**Likely interview questions:**
+- *Did the metric layer help?* In this run, by one question out of 28, within run-to-run
+  variation. The model avoided the row-multiplication trap when the prompt warned it, so
+  the honest claim is that the metric layer makes those mistakes impossible, not that the
+  baseline made many of them.
+- *Why compare results instead of SQL text?* Many different queries are correct. What
+  matters is whether the numbers match the definition, so the eval runs both and compares
+  rows, with a 0.01 tolerance for money and rates.
+- *How did you keep the eval honest?* The questions and gold SQL were committed before
+  any run; nothing was changed afterwards; the one allowlist change has a stated reason
+  and was re-run on both sides; every number in the report comes from the results files.
+- *What would you do next?* Run each question several times to measure variation, give
+  the free-form prompt the category names, and add harder questions where definitions
+  matter more (for example customers counted by person, not by order).
+
 ## Phase 6 — API
 
 **What was built:**

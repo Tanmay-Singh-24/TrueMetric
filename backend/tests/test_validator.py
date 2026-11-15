@@ -27,6 +27,7 @@ ACCEPTED = {
         "FROM products GROUP BY category"
     ),
     "trailing semicolon": "SELECT COUNT(*) FROM orders;",
+    "date function": "SELECT DATE(order_purchase_timestamp) AS day FROM orders",
 }
 
 # Each rejected query names a word the error message must contain, so the test shows
@@ -135,4 +136,4 @@ def test_a_rejected_function_is_named_in_postgres_spelling_with_the_allowed_list
         validate_sql(sql)
     message = str(caught.value)
     assert message.startswith("function not allowed: TO_CHAR.")
-    assert "Allowed functions: AVG, CASE, CAST, COALESCE, COUNT, DATE_TRUNC" in message
+    assert "Allowed functions: AVG, CASE, CAST, COALESCE, COUNT, DATE, DATE_TRUNC" in message
