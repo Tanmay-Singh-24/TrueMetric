@@ -14,18 +14,22 @@ Answer the question in one or two sentences, using only numbers that appear in t
 rows below. Do not mention row limits, SQL or the database.
 
 Question: {question}
+What the rows contain: {context}
 Columns: {columns}
 Rows:
 {rows}"""
 
 
-def summarize(question: str, columns: list[str], rows: list[list]) -> str:
-    """A short answer from up to 20 result rows, or the fallback if the LLM call fails."""
+def summarize(question: str, context: str | None, columns: list[str], rows: list[list]) -> str:
+    """A short answer from up to 20 rows and what they contain; the fallback if the LLM fails."""
     shown_rows = "\n".join(
         " | ".join(str(value) for value in row) for row in rows[:MAX_SUMMARY_ROWS]
     )
     prompt = SUMMARY_PROMPT.format(
-        question=question, columns=" | ".join(columns), rows=shown_rows or "(no rows)"
+        question=question,
+        context=context or "(not given)",
+        columns=" | ".join(columns),
+        rows=shown_rows or "(no rows)",
     )
     try:
         return invoke_text("Summary", [("human", prompt)]).strip() or FALLBACK_ANSWER

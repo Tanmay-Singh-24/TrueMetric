@@ -74,6 +74,16 @@ def build_audit(
     )
 
 
+def format_answer(metric: Metric, parameters: dict[str, Any], headline: str) -> str:
+    """The answer for a single-value metric, built by code: name, period, filters, value."""
+    parts = [metric.name, f"{parameters['start_date']} – {parameters['end_date']}"]
+    if parameters.get("state"):
+        parts.append(f"state {parameters['state']}")
+    if parameters.get("category"):
+        parts.append(f"category {parameters['category']}")
+    return f"{', '.join(parts)}: {headline}"
+
+
 def format_headline(metric: Metric, columns: list[str], rows: list[list]) -> str | None:
     """The metric's single value formatted for display, or None if there is no single value."""
     if metric.value_column is None or len(rows) != 1:

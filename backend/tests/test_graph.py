@@ -109,6 +109,7 @@ def test_a_metric_decision_produces_a_full_audit(monkeypatch: pytest.MonkeyPatch
     result = graph.ask("What was our revenue in 2018?", summarize=False)
     audit = result["audit"]
     assert result["headline"] == "R$ 7,341,182.41"
+    assert result["answer"] == "Merchandise revenue, 2018-01-01 – 2018-12-31: R$ 7,341,182.41"
     assert (audit["path"], audit["check"], audit["attempts"]) == (
         "metric",
         "Verified metric template",
@@ -129,3 +130,30 @@ def test_a_freeform_answer_after_one_retry(monkeypatch: pytest.MonkeyPatch) -> N
     result = graph.ask("How many sellers?", mode="freeform_only", summarize=False)
     assert result["rows"] == [[3095]]
     assert (result["audit"]["path"], result["audit"]["attempts"]) == ("freeform", 2)
+
+
+@pytest.mark.db
+def test_a_single_value_answer_makes_no_llm_call(monkeypatch: pytest.MonkeyPatch) -> None:
+    def no_summary(*args: object) -> None:
+        raise AssertionError("the summary LLM was called")
+
+    fake_router(monkeypatch, decision(metric_id="order_count", state="RJ"))
+    monkeypatch.setattr(graph, "summarize", no_summary)
+    result = graph.ask("How many orders came from RJ?", summarize=True)
+    assert result["answer"].startswith("Number of orders, 2016-09-04 – 2018-10-17, state RJ: ")
+
+
+@pytest.mark.db
+def test_a_table_metric_summary_is_told_the_metric(monkeypatch: pytest.MonkeyPatch) -> None:
+    contexts = []
+
+    def capture(question: str, context: str, columns: list, rows: list) -> str:
+        contexts.append(context)
+        return "summary"
+
+    fake_router(monkeypatch, decision(metric_id="top_categories_by_units", top_n=3))
+    monkeypatch.setattr(graph, "summarize", capture)
+    graph.ask("Which category performs best?", summarize=True)
+    assert contexts == [
+        "Top categories by units sold: Product categories ranked by number of units sold."
+    ]

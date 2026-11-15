@@ -429,10 +429,19 @@ read-only connection and timeout.
 
 ### 6.4 Summarize (`summarize.py`)
 
-One LLM call: the question, the column names and up to 20 result rows. Instruction: one
-or two sentences, use only numbers that appear in the rows, never mention row limits. If
-the call fails, return `"Here are the results."` — a failed summary must not hide a
-successful query.
+How the one-sentence answer is written depends on what ran:
+
+- **Single-value metrics** (a metric with a `value_column` that returns one row): no LLM
+  call. `format_answer()` in `audit.py` builds it from the resolved parameters and the
+  formatted headline: `"<metric name>, <start> – <end>[, state X][, category Y]:
+  <headline>"`, e.g. `Merchandise revenue, 2018-01-01 – 2018-12-31: R$ 7,341,182.41`.
+- **Table metrics**: one LLM call with the question, the metric's name and definition (so
+  it knows what the ranking is based on), the column names and up to 20 result rows.
+- **Free-form**: the same call, with the generator's explanation in place of the metric.
+
+Instruction for the LLM call: one or two sentences, use only numbers that appear in the
+rows, never mention row limits. If the call fails, return `"Here are the results."` — a
+failed summary must not hide a successful query.
 
 ### 6.5 Audit trail (`audit.py`)
 
@@ -647,6 +656,7 @@ add a row.
 | Function allowlist in the validator | A blocklist only stops what someone thought of | Blocklist of dangerous functions |
 | Validator + read-only role + timeout | Each layer covers a different failure; none is trusted alone | Trusting the prompt, or the validator alone |
 | Headline number formatted by code | The one number users read first never passes through the model | Letting the summary carry the number |
+| Single-value answers built by code; summaries told what the rows are | A single number needs no LLM, so it cannot be misstated or cost tokens. A table summary given only rows named the revenue leader after the user chose "units sold"; the metric's name and definition (or the generator's explanation) tell it what the rows mean | Summarising every result from the rows alone |
 | Audit trail in the response and logs only | The app needs no write access to the database | A `query_log` table |
 | One LLM provider, one model | Nothing to compare, nothing to switch; fewer moving parts | Provider abstraction |
 | Baseline gets the glossary | Otherwise the eval would only show that the baseline did not know the definitions | Baseline with schema only |

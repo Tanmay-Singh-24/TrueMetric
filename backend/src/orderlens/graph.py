@@ -11,7 +11,7 @@ from typing import Literal, TypedDict
 import psycopg
 from langgraph.graph import END, START, StateGraph
 
-from orderlens.audit import Audit, build_audit, format_headline
+from orderlens.audit import Audit, build_audit, format_answer, format_headline
 from orderlens.config import settings
 from orderlens.db import run_query
 from orderlens.freeform import generate_sql
@@ -57,6 +57,7 @@ class State(TypedDict, total=False):
     rows: list[list]
     status: Literal["answered", "clarify", "refused", "failed"]
     answer: str
+    headline: str | None  # formatted by code, never by the LLM
     options: list[dict]
 
 
@@ -100,10 +101,18 @@ def execute_sql_node(state: State) -> dict:
 
 
 def summarize_node(state: State) -> dict:
+    metric = get_metric(state["decision"].metric_id) if "metric_args" in state else None
+    headline = format_headline(metric, state["columns"], state["rows"]) if metric else None
+    if headline is not None:
+        # A single value needs no LLM: the answer is built by code from what ran.
+        answer = format_answer(metric, state["metric_args"], headline)
+        return {"status": "answered", "headline": headline, "answer": answer}
     if not state["summarize"]:
-        return {"status": "answered", "answer": FALLBACK_ANSWER}
-    answer = summarize(state["question"], state["columns"], state["rows"])
-    return {"status": "answered", "answer": answer}
+        return {"status": "answered", "headline": None, "answer": FALLBACK_ANSWER}
+    # Tell the summary what the rows mean: the metric, or the generator's explanation.
+    context = f"{metric.name}: {metric.definition}" if metric else state.get("explanation")
+    answer = summarize(state["question"], context, state["columns"], state["rows"])
+    return {"status": "answered", "headline": None, "answer": answer}
 
 
 def clarify_node(state: State) -> dict:
@@ -210,13 +219,10 @@ def response_from_state(state: State, duration_ms: int) -> dict:
     if state["status"] != "answered":
         return response(state["status"], state["answer"], options=state.get("options", []))
     audit = audit_from_state(state, duration_ms)
-    metric = get_metric(audit.metric_id) if audit.metric_id else None
-    # The headline is formatted by code, never by the LLM.
-    headline = format_headline(metric, state["columns"], state["rows"]) if metric else None
     return response(
         "answered",
         state["answer"],
-        headline=headline,
+        headline=state["headline"],
         columns=state["columns"],
         rows=state["rows"],
         audit=audit.model_dump(),

@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytest
 
-from orderlens.audit import build_audit, format_headline
+from orderlens.audit import build_audit, format_answer, format_headline
 from orderlens.metrics.registry import get_metric
 
 
@@ -62,3 +62,22 @@ def test_freeform_audit_uses_the_explanation_and_counts_attempts() -> None:
     assert audit.path == "freeform"
     assert audit.definition == "Counts sellers."
     assert audit.attempts == 2
+
+
+def test_single_value_answer_names_the_metric_period_and_value() -> None:
+    parameters = {"start_date": date(2018, 1, 1), "end_date": date(2018, 12, 31), "state": None}
+    answer = format_answer(get_metric("order_count"), parameters, "53,532")
+    assert answer == "Number of orders, 2018-01-01 – 2018-12-31: 53,532"
+
+
+def test_single_value_answer_includes_state_and_category_filters() -> None:
+    parameters = {
+        "start_date": date(2017, 1, 1),
+        "end_date": date(2017, 12, 31),
+        "state": "SP",
+        "category": "health_beauty",
+    }
+    answer = format_answer(get_metric("merchandise_revenue"), parameters, "R$ 1.00")
+    assert answer == (
+        "Merchandise revenue, 2017-01-01 – 2017-12-31, state SP, category health_beauty: R$ 1.00"
+    )
