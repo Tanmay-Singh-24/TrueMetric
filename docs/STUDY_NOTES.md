@@ -360,6 +360,11 @@
 **What went wrong:**
 - After the role rename, `DATABASE_URL` in `.env` still named the old user. Tests and the
   screenshot ran with the username swapped in memory until the `.env` is updated.
+- The first `git push` failed every time with a TLS "bad record mac" error, even for a
+  single small commit, while ordinary requests to GitHub worked. The Mac was on a phone
+  hotspot, which was corrupting the upload; the push went through from another network.
+- Live checks on the deployed site passed: a metric answer, a clarify question and its
+  option, a free-form answer, and a request from another origin blocked by CORS.
 
 **Likely interview questions:**
 - *So did the project work?* The safety and verification parts did: no wrong metric ran,

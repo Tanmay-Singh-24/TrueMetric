@@ -1,5 +1,7 @@
 # TrueMetric
 
+[![CI](https://github.com/Tanmay-Singh-24/TrueMetric/actions/workflows/ci.yml/badge.svg)](https://github.com/Tanmay-Singh-24/TrueMetric/actions/workflows/ci.yml)
+
 TrueMetric answers plain-English questions about e-commerce orders (the public Olist
 dataset: 99,441 orders from a Brazilian online store, 2016–2018). Its one idea:
 
@@ -11,7 +13,8 @@ fits, the LLM writes a query that must pass a validator and run under a read-onl
 time-limited database role. When a question could mean two metrics, the app asks which
 one. Every answer carries an audit trail built by code.
 
-**Live demo:** _link to be added after deployment_
+**Live demo:** https://true-metric-eta.vercel.app (the API runs on Render's free tier and
+sleeps when idle, so the first question after a quiet spell can take up to a minute)
 
 ![TrueMetric answering "What were total sales in 2018?" with the audit panel open](docs/screenshot.jpg)
 
