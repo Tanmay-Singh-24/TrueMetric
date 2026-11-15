@@ -537,6 +537,10 @@ Response:
 
 `options` is non-empty only when `status` is `clarify`.
 
+`ask()` also returns `failure` (reason, error detail and last SQL) when a run fails. The eval
+uses it to tell validator rejections from SQL errors, and `/ask` writes it to the log line;
+the API response leaves it out.
+
 - **Rate limit:** a fixed-window counter in memory, keyed by client IP (first address in
   `X-Forwarded-For`): 10 requests a minute per IP and 300 a day in total, both set in
   config. Over the limit → HTTP 429. It resets on restart and the header can be spoofed;

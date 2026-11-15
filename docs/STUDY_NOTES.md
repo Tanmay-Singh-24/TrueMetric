@@ -217,3 +217,39 @@
 - *What does one question cost in tokens?* About 1,800–2,000 on the metric path and
   about 3,400–3,500 on the free-form path, with the summary. The router prompt alone is
   about 1,450 input tokens.
+
+## Phase 6 — API
+
+**What was built:**
+- `api.py`: `GET /health`, `GET /catalog`, `POST /ask` with Pydantic request and response
+  models, CORS limited to `CORS_ORIGINS`, and one JSON log line per request with the audit.
+- `ratelimit.py`: 10 requests a minute per IP and 300 a day in total, in memory.
+- `backend/Dockerfile` (`python:3.12-slim`, `uv sync --frozen --no-dev`, uvicorn on `$PORT`).
+
+**Why it is built this way:**
+- The request model caps the question at 300 characters, so FastAPI rejects longer ones
+  with a 422 before any LLM call. Only `/ask` is rate-limited: it is the only endpoint
+  that costs tokens, and the page calls `/health` while the server wakes up.
+- The limiter is a dataclass of counters plus one plain function. Fixed windows (a new
+  minute or a new UTC day resets the count) are simple to explain and test; a lock is
+  needed because FastAPI runs plain `def` endpoints in a thread pool.
+- The response model is the API contract: anything not in it (the internal `failure`
+  details) is never sent. Decimals become JSON numbers for display.
+- The Docker image copies `pyproject.toml` and `uv.lock` before the code, so dependencies
+  stay cached between builds, and it installs exactly the locked versions.
+
+**What went wrong:**
+- Docker is not installed on the build machine, so the image was not built locally; the
+  same checks ran against `uvicorn` directly. Render builds the image in Phase 8.
+
+**Likely interview questions:**
+- *What happens if someone sends 1,000 requests?* After 10 in a minute from one IP they
+  get HTTP 429, and after 300 in a day from everyone together the demo stops answering.
+  The counter is in memory and keyed by `X-Forwarded-For`, which a client can spoof;
+  that is acceptable for a free demo and stated in the README.
+- *Why plain `def` endpoints and not `async def`?* The work is a blocking database query
+  and blocking LLM calls; FastAPI runs `def` endpoints in a thread pool, so the server
+  still handles several requests at once without async code.
+- *How does CORS protect the API?* The browser only lets pages from the listed origins
+  read responses. It does not stop scripts or curl, which is why the rate limit and the
+  read-only database role exist.
