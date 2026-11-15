@@ -376,3 +376,48 @@
   database or the LLM; those are covered by the database tests run locally and the eval.
 - *How did you rename the database user without downtime?* `ALTER ROLE ... RENAME TO`
   keeps the password and permissions; only the connection string's username changes.
+
+## Frontend redesign — pixel art and interaction
+
+**What was built:**
+- A dithered pixel-art hero (`art/skyline.ts`): the skyline is the real monthly revenue,
+  Jan 2017 – Aug 2018, from `reference_values.json`. Bars rise on load, clouds drift,
+  hovering shows the month's figure, clicking asks that month's revenue question.
+- A halftone "How it works" (`art/halftone.ts`): dots morph from a fork (routing) to a
+  database (verified code) to a magnifying glass (the audit) as the steps scroll past.
+- An interactive join trap (toggle: payment blocks multiply, totals count from
+  R$ 15.74M to R$ 20.16M), a ticker of real metric values, rolling-digit facts, a pixel
+  loader and stepped reveals.
+
+**Why it is built this way:**
+- Ordered (Bayer) dithering compares each pixel's shade with a fixed 4×4 pattern, which
+  turns gradients into the pixel texture of old printers. The scene is drawn at about a
+  quarter of screen resolution into an `ImageData` buffer and scaled up with
+  `image-rendering: pixelated`, so every art pixel is a crisp square and drawing stays cheap.
+- Each halftone shape is a signed distance function (negative inside); a dot's size is how
+  far inside the shape its centre is, and blending two shapes' sizes morphs one into the
+  other. The morph is centred on each step boundary, so the picture is half-way through
+  changing exactly when the heading switches.
+- The art uses only real numbers: the skyline, the tooltip and the ticker match what the
+  verified metrics return (clicking November 2017 answers R$ 1,003,862.14, the bar's value).
+- Still React's rules: `useState` and `useEffect` only. Canvas elements are captured with
+  `ref={setCanvas}` into state; drawing lives in plain functions that return a stop
+  function, which the effect uses as its cleanup. Loops pause off-screen, colours come from
+  CSS variables (so dark mode works), and reduced-motion users get still frames.
+
+**What went wrong:**
+- Hover used `event.offsetX`, which is unreliable when the page is scaled: the tooltip
+  showed April 2017 over November's bar. Now the column is computed from `clientX` and the
+  canvas's on-screen rectangle.
+- The first morph finished each new shape before its step began, so the picture ran ahead of
+  the heading. Centring the morph on the step boundary fixed it.
+
+**Likely interview questions:**
+- *Why draw at low resolution instead of full size?* A 1280-pixel-wide hero is drawn as 320
+  art pixels, so each frame touches about 30,000 pixels instead of half a million, and the
+  pixel look comes for free from scaling up without smoothing.
+- *How do you keep the animation from wasting battery?* An IntersectionObserver pauses the
+  loop when the canvas is off-screen, frames are capped at 30 a second, and users who ask
+  for reduced motion get one still frame.
+- *Is the decoration honest?* Yes: every number on the page, including the art, comes from
+  the same reference values the tests check, and clicking a bar asks the real question.

@@ -5,8 +5,13 @@ import { AnswerCard } from "./components/AnswerCard";
 import { AskBox } from "./components/AskBox";
 import { AuditPanel } from "./components/AuditPanel";
 import { ClarifyOptions } from "./components/ClarifyOptions";
+import { DataSkyline } from "./components/DataSkyline";
 import { ExampleQuestions } from "./components/ExampleQuestions";
+import { Facts } from "./components/Facts";
 import { HowItWorks } from "./components/HowItWorks";
+import { JoinTrap } from "./components/JoinTrap";
+import { MetricTicker } from "./components/MetricTicker";
+import { PixelLoader } from "./components/PixelLoader";
 import { ResultTable } from "./components/ResultTable";
 import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
@@ -42,6 +47,25 @@ export function App() {
     };
   }, []);
 
+  useEffect(() => {
+    // Sections marked data-reveal fade in the first time they scroll into view.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.15 },
+    );
+    for (const element of document.querySelectorAll("[data-reveal]")) {
+      observer.observe(element);
+    }
+    return () => observer.disconnect();
+  }, []);
+
   async function ask(text: string, metricId?: string) {
     setQuestion(text);
     setAskedQuestion(text);
@@ -55,6 +79,12 @@ export function App() {
     } finally {
       setLoading(false);
     }
+  }
+
+  // For questions asked from further down the page: bring the answer into view first.
+  function askAndShow(text: string) {
+    document.getElementById("results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    ask(text);
   }
 
   const busy = !serverReady || loading;
@@ -88,8 +118,8 @@ export function App() {
           />
         </section>
 
-        <section className="results" aria-live="polite">
-          {loading && <p className="muted">Working on it…</p>}
+        <section id="results" className="results" aria-live="polite">
+          {loading && <PixelLoader />}
           {error && <p className="notice error">{error}</p>}
 
           {result && (
@@ -117,7 +147,11 @@ export function App() {
           )}
         </section>
 
+        <DataSkyline disabled={busy} onAsk={askAndShow} />
+        <MetricTicker disabled={busy} onAsk={askAndShow} />
         <HowItWorks />
+        <JoinTrap />
+        <Facts />
       </main>
       <SiteFooter />
     </div>

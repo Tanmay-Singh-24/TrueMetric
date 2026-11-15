@@ -1,75 +1,65 @@
+import { useEffect, useState } from "react";
+
+import { startHalftone } from "../art/halftone";
+
 const STEPS = [
   {
     number: "01",
     title: "Route",
-    text: "One LLM call reads the question. It picks one of ten verified metrics, asks which one you mean, or hands over to free-form SQL.",
+    text: "One LLM call reads the question. It picks one of ten verified metrics, asks which one you mean when two could fit, or hands over to free-form SQL. It must pass on every filter it hears; code checks the metric can honour them.",
   },
   {
     number: "02",
     title: "Compute",
-    text: "A metric runs a fixed SQL file with bound values. Free-form SQL must pass a validator, then runs read-only with a five-second limit.",
+    text: "A metric runs a fixed SQL file with bound values: the model never writes it. Free-form SQL must pass a validator with a function allowlist, then runs as a read-only role that is cut off after five seconds.",
   },
   {
     number: "03",
     title: "Show the working",
-    text: "Every answer lists its definition, date range, filters and the exact SQL. Single numbers are formatted by code, never by the model.",
+    text: "Every answer carries its definition, date range, filters, inclusion rules and the exact SQL that ran. A single number is formatted by code, so the figure you read first never passes through the model.",
   },
 ];
 
-const FACTS = [
-  { value: "10", label: "verified metrics" },
-  { value: "33 / 33", label: "reference cases match an independent Python computation" },
-  { value: "3", label: "safety layers: validator, read-only role, time limit" },
-  { value: "99,441", label: "orders, 2016–2018" },
-];
+const WORDS = ["routing", "verified code", "showing its working"];
 
 export function HowItWorks() {
+  const [section, setSection] = useState<HTMLElement | null>(null);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    if (!section || !canvas) {
+      return;
+    }
+    return startHalftone(canvas, section, setStep);
+  }, [section, canvas]);
+
   return (
-    <section id="how" className="how">
-      <p className="eyebrow">How it works</p>
-      <h2>
-        The model decides <em>what</em> you asked. Verified code decides <em>how</em> to compute
-        it.
-      </h2>
-      <ol className="steps">
-        {STEPS.map((step) => (
-          <li key={step.number}>
-            <span className="step-number">{step.number}</span>
-            <h3>{step.title}</h3>
-            <p>{step.text}</p>
+    <section id="how" className="how" ref={setSection}>
+      <div className="how-sticky">
+        <p className="eyebrow">How it works</p>
+        <h2>
+          Answering through{" "}
+          <em key={step} className="swap">
+            {WORDS[step]}
+          </em>
+        </h2>
+        <canvas
+          ref={setCanvas}
+          className="halftone"
+          role="img"
+          aria-label="Halftone illustration that changes with each step: a fork, a database, a magnifying glass."
+        />
+      </div>
+      <ol className="how-steps">
+        {STEPS.map((item, index) => (
+          <li key={item.number} className={index === step ? "is-active" : ""}>
+            <span className="step-number">{item.number}</span>
+            <h3>{item.title}</h3>
+            <p>{item.text}</p>
           </li>
         ))}
       </ol>
-
-      <div className="trap">
-        <div>
-          <p className="eyebrow">The mistake this prevents</p>
-          <p>
-            An order can have several items and several payments. Join both tables and every
-            payment is counted once per item. The query runs without error and returns a
-            confident, wrong total. A verified metric cannot make this mistake.
-          </p>
-        </div>
-        <dl>
-          <div>
-            <dt>Payments, counted correctly</dt>
-            <dd>R$ 15,739,137.01</dd>
-          </div>
-          <div className="wrong">
-            <dt>After joining order items</dt>
-            <dd>R$ 20,156,175.58</dd>
-          </div>
-        </dl>
-      </div>
-
-      <ul className="facts">
-        {FACTS.map((fact) => (
-          <li key={fact.label}>
-            <strong>{fact.value}</strong>
-            <span>{fact.label}</span>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }

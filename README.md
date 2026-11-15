@@ -16,7 +16,7 @@ one. Every answer carries an audit trail built by code.
 **Live demo:** https://true-metric-eta.vercel.app (the API runs on Render's free tier and
 sleeps when idle, so the first question after a quiet spell can take up to a minute)
 
-![TrueMetric answering "What were total sales in 2018?" with the audit panel open](docs/screenshot.jpg)
+![TrueMetric home page: a pixel-art skyline of real monthly revenue, with November 2017 highlighted at R$ 1,003,862.14](docs/screenshot.jpg)
 
 ## What the evaluation shows
 
