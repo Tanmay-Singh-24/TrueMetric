@@ -24,7 +24,7 @@ def load_settings() -> Settings:
         owner_database_url=os.environ.get("OWNER_DATABASE_URL", ""),
         readonly_password=os.environ.get("READONLY_PASSWORD", ""),
         groq_api_key=os.environ.get("GROQ_API_KEY", ""),
-        groq_model=os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile"),
+        groq_model=os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b"),
         cors_origins=[origin.strip() for origin in cors_origins.split(",") if origin.strip()],
         rate_limit_per_minute=int(os.environ.get("RATE_LIMIT_PER_MINUTE", "10")),
         rate_limit_per_day=int(os.environ.get("RATE_LIMIT_PER_DAY", "300")),

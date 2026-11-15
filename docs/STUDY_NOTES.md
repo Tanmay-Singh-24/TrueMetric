@@ -119,3 +119,55 @@
 - *Why cast every placeholder (`%(state)s::text`)?* psycopg 3 sends values separately
   from the SQL, and a NULL with no cast has no type, so Postgres cannot plan
   `NULL IS NULL OR ...`.
+
+## Phase 3 — Free-form path
+
+**What was built:**
+- `validator.py`: `validate_sql()` with the seven checks (one statement, SELECT only, no
+  writes anywhere, known tables, allowlisted functions, known columns, row limit).
+- `llm.py` (the only place that creates the Groq model, with one retry for malformed
+  structured output) and `freeform.py` (prompt, `GeneratedSQL`, `generate_sql()`).
+- `scripts/try_freeform.py`: generate → validate → execute with one retry, from the
+  terminal.
+
+**Why it is built this way:**
+- Functions are checked against an allowlist of sqlglot node types. Anything sqlglot
+  does not recognise (`pg_sleep`, `dblink`, `table_to_xml`) is an unknown function and is
+  rejected without anyone having to think of it first.
+- Columns are checked with sqlglot's `qualify` against the map parsed from `schema.sql`,
+  so the validator and the database cannot disagree about what exists.
+- The SQL that runs is regenerated from the checked parse tree: what runs is exactly
+  what was checked. A database test confirms every metric gives the same rows after the
+  round trip.
+- Both attempts go through the same `validate_sql`; the retry only changes what the LLM
+  is shown (the failed SQL and the error).
+- Groq's strict structured output constrains the reply to the `GeneratedSQL` schema.
+  `llm.py` turns off the Groq client's own retries so a 429 is never retried.
+- The free-form prompt holds the schema text and the business definitions, taken from
+  the catalogue so they cannot drift from the metrics. Nothing else yet.
+
+**What went wrong:**
+- `llama-3.3-70b-versatile`, the model in the design, was shut down by Groq on
+  16 Aug 2026. Switched to `openai/gpt-oss-120b` with reasoning effort "low".
+- The row-limit check turned `LIMIT 5::int` into `LIMIT 200`: a cast is not a plain
+  number, and the first version replaced any limit it could not read. The database
+  round-trip test caught it on the three top-N metrics. Fix: a limit that is not a plain
+  number is kept, and the whole query is wrapped in `SELECT * FROM (...) LIMIT 200`, so a
+  smaller limit is never raised.
+- sqlglot models `AND`, `OR` and `CASE ... WHEN` branches as function nodes, and renames
+  some functions (`date_trunc` → `TimestampTrunc`). Inspecting the parse trees first
+  shaped the allowlist and the decision to skip `AND`/`OR`.
+
+**Likely interview questions:**
+- *Why an allowlist and not a blocklist?* A blocklist only stops the functions someone
+  thought of; Postgres has thousands. With an allowlist, a new dangerous function is
+  rejected by default.
+- *If the validator has a bug, what still protects the data?* The app connects as a role
+  with only `SELECT` on seven tables, and every statement is cancelled after five
+  seconds. The validator is one of three independent layers.
+- *How does the retry work?* If validation or execution fails, the LLM is called once
+  more with the failed SQL and the error message. The new SQL goes through exactly the
+  same checks; after a second failure the question fails.
+- *How many tokens does a free-form call cost?* About 1,500–1,650 tokens, almost all of
+  it the prompt (schema plus definitions, about 1,440 tokens). At 8,000 tokens a minute
+  that is about five calls a minute.

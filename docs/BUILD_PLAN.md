@@ -104,7 +104,7 @@ a phase needs it, stop and ask.
 **Build**
 
 - `llm.py`: `chat_model()` returning the configured Groq model at temperature 0, with the
-  single retry for `tool_use_failed`.
+  single retry for `tool_use_failed` or `json_validate_failed` (never for 429).
 - `validator.py`: `validate_sql()` with the seven checks in ARCHITECTURE.md section 6.3.
 - `freeform.py`: the prompt, `GeneratedSQL`, `generate_sql(question, previous_sql=None,
   error=None)`.

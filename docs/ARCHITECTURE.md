@@ -79,7 +79,7 @@ The request is stateless. Nothing is remembered between questions.
 |---|---|---|
 | Language | Python 3.12, `uv` | |
 | Agent | LangGraph | Only `graph.py` imports it |
-| LLM | Groq via `langchain-groq` | One model for all three calls, set by `GROQ_MODEL`. Default `llama-3.3-70b-versatile`; check Groq's current model list before Phase 3 and pick one that supports tool calling |
+| LLM | Groq via `langchain-groq` | One model for all three calls, set by `GROQ_MODEL`. Default `openai/gpt-oss-120b` with reasoning effort `low`, using Groq's strict structured output |
 | Database | PostgreSQL on Neon (free tier) | Same database for development and the demo |
 | DB driver | `psycopg` 3 + `psycopg_pool` | No ORM |
 | SQL parsing | `sqlglot` | Validator and schema parsing |
@@ -493,9 +493,10 @@ point. The API, the eval and `scripts/ask.py` all call it.
 Error handling:
 
 - Validator errors and SQL errors (bad SQL, timeout) → one retry, then `fail`.
-- LLM errors → not retried by the graph. Exception: Groq sometimes returns a 400
-  `tool_use_failed` when the model emits malformed structured output; `llm.py` retries
-  that once.
+- LLM errors → not retried by the graph. Exception: Groq can return a 400
+  `tool_use_failed` or `json_validate_failed` when the model emits malformed structured
+  output; `llm.py` retries that exactly once. Rate-limit errors (429) are never retried
+  by `llm.py`.
 - Groq rate limit (429) → `fail` with "The demo has reached today's free AI limit. Please
   try again tomorrow."
 - Connection errors → `fail`. A rewritten query cannot fix them.
@@ -652,6 +653,7 @@ add a row.
 | Category translated at load time | One less table and join in every query, for both paths | Keeping the translation table |
 | Settings from plain environment variables | Eight values need no library; `uv run --env-file .env` loads them locally, so LangSmith sees the same variables as the app | `pydantic-settings` (an extra dependency) |
 | Database setup in one transaction | A failed load leaves the previous data in place, and rerunning is always safe | Committing table by table |
+| `openai/gpt-oss-120b`, reasoning effort low | `llama-3.3-70b-versatile` was shut down on 16 Aug 2026. gpt-oss-120b was chosen for SQL accuracy; low reasoning effort limits token use under the free tier's 8,000 tokens a minute | `qwen/qwen3.8-27b` (smaller), `openai/gpt-oss-20b` (weaker) |
 
 ---
 
