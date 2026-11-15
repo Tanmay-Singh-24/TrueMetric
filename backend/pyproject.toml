@@ -5,6 +5,9 @@ description = "Plain-English questions over e-commerce orders, answered by verif
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "fastapi>=0.163.0",
+    "psycopg-pool>=3.3.3",
+    "psycopg[binary]>=3.3.9",
+    "sqlglot>=30.31.0",
     "uvicorn>=0.54.0",
 ]
 

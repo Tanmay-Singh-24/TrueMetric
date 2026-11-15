@@ -650,6 +650,8 @@ add a row.
 | Baseline gets the glossary | Otherwise the eval would only show that the baseline did not know the definitions | Baseline with schema only |
 | psycopg without an ORM | The project is about SQL; an ORM would hide it | SQLAlchemy |
 | Category translated at load time | One less table and join in every query, for both paths | Keeping the translation table |
+| Settings from plain environment variables | Eight values need no library; `uv run --env-file .env` loads them locally, so LangSmith sees the same variables as the app | `pydantic-settings` (an extra dependency) |
+| Database setup in one transaction | A failed load leaves the previous data in place, and rerunning is always safe | Committing table by table |
 
 ---
 

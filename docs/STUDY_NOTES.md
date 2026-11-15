@@ -32,3 +32,47 @@
   `/health` first to wake the server and show a "waking up" message until it answers.
 - *Why `uv`?* It resolves and locks dependencies quickly and writes `uv.lock`, so the
   Docker image installs exactly the versions tested locally.
+
+## Phase 1 — Data
+
+**What was built:**
+- `sql/schema.sql` (the seven tables, with the comments the LLM will read) and
+  `sql/indexes.sql`; `scripts/download_data.py` fetches the eight CSVs.
+- `scripts/setup_db.py`: drops and recreates the tables, loads the CSVs with `COPY`,
+  creates indexes and the `orderlens_readonly` role, then prints the facts to check.
+- `db.py` (`run_query()` over a small read-only pool), `schema.py` (parses `schema.sql`
+  into `{table: {column: type}}`), `lookups.py` (`known_states()`, `known_categories()`).
+
+**Why it is built this way:**
+- Python's `csv` module picks columns, turns empty strings into NULL and resolves the
+  category; `COPY` then streams the rows in. `COPY` is far faster than 300k `INSERT`s.
+- The whole setup is one transaction: if anything fails, the old data stays, so the
+  script is always safe to rerun.
+- The read-only role gets `SELECT` on the seven tables and nothing else, plus
+  `statement_timeout = 5s` set on the role itself, so no client can forget to set it.
+- `schema.py` parses `schema.sql` with sqlglot instead of asking the database what
+  tables exist, so the database, the prompt and the validator share one source.
+- The pool checks each connection before use, because Neon suspends an idle database and
+  closes its connections.
+- Lookups are read once and cached with `functools.cache`: states and categories never
+  change while the app runs.
+
+**What went wrong:**
+- The download failed with `CERTIFICATE_VERIFY_FAILED`: the python.org build of Python
+  has no CA certificates until its "Install Certificates" step is run. Rebuilt the local
+  virtualenv on Homebrew's Python 3.12 instead of turning off verification.
+- Two Portuguese categories (`pc_gamer`, `portateis_cozinha_e_preparadores_de_alimentos`)
+  have no English translation. As designed, they keep their Portuguese name; that is why
+  there are 74 categories (71 English, 2 Portuguese, `unknown`).
+
+**Likely interview questions:**
+- *What stops the app from deleting data?* The app only holds the read-only role, which
+  has `SELECT` and nothing else. The test suite checks that `DELETE FROM orders` fails
+  with "permission denied".
+- *What stops a runaway query?* `statement_timeout = 5s` on the role. A test runs
+  `pg_sleep(7)` and checks it is cancelled after about five seconds.
+- *Why is `customer_unique_id` a trap?* `customer_id` is new for every order, so there
+  are 99,441 of them but only 96,096 real people. Counting customers by `customer_id`
+  overcounts, and the repeat rate comes out as zero.
+- *Why not load with pandas?* The standard `csv` module and `COPY` are enough for seven
+  files, and pandas would be a large dependency used once.
