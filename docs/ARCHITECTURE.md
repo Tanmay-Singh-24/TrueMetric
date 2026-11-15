@@ -46,13 +46,13 @@ flowchart TD
     R -- clarify --> C([Ask which metric])
     R -- refuse --> X([Refuse])
     R -- freeform --> G[generate_sql<br/>LLM]
-    G --> V[validate_sql<br/>sqlglot]
     G -- data cannot answer --> X
+    G --> V[validate_sql<br/>allowlists]
     V -- ok --> E[execute_sql<br/>read-only role]
-    V -- error, 1st attempt --> G
-    E -- error, 1st attempt --> G
-    V -- error, 2nd attempt --> F([Fail])
-    E -- error, 2nd attempt --> F
+    V -- error --> T{first error?}
+    E -- error --> T
+    T -. yes: retry with the error .-> G
+    T -- no --> F([Fail])
     M --> S[summarize<br/>LLM, rows only]
     E -- ok --> S
     S --> A([Answer + audit + table])
