@@ -76,3 +76,46 @@
   overcounts, and the repeat rate comes out as zero.
 - *Why not load with pandas?* The standard `csv` module and `COPY` are enough for seven
   files, and pandas would be a large dependency used once.
+
+## Phase 2 — Metric layer
+
+**What was built:**
+- `scripts/reference_values.py`: the ten metrics computed a second time in plain Python
+  from the raw CSVs (no SQL, no database), written to `tests/reference_values.json`.
+- Ten static `.sql` files copied from METRICS.md; `catalog.py` (a tuple of ten `Metric`
+  dataclasses); `registry.py` (`get_metric`, `validate_args`, `run_metric`).
+- `audit.py` (`build_audit`, `format_headline`) and `scripts/run_metric.py`.
+
+**Why it is built this way:**
+- Two independent implementations, Python and SQL, must agree. A bug would have to be
+  made the same way twice to slip through. The Python version was written and checked
+  against METRICS.md before any SQL existed.
+- The SQL text never changes; only bound values do. Optional filters are written as
+  `(%(state)s::text IS NULL OR ...)`, so there is no string building to inject into.
+- `validate_args` treats `None` as "not given" (the router fills every field), rejects
+  anything the metric cannot do exactly, and fills in the data window when dates are
+  missing, so the audit trail always shows a concrete range.
+- Money stays `Decimal` from the database to the comparison. The JSON stores values as
+  exact strings, so the tests never compare floats.
+- `Metric` lives in `catalog.py`, not `registry.py`: the registry imports the catalogue,
+  so defining the dataclass there would make the two modules import each other.
+- The headline number is formatted by code (`R$ 7,341,182.41`), never by the LLM.
+
+**What went wrong:**
+- Running the full test suite without `--env-file .env` leaves `DATABASE_URL` empty, and
+  the database tests wait for a connection instead of failing. Run `pytest -m "not db"`
+  when there is no database.
+
+**Likely interview questions:**
+- *How do you know the metric SQL is right?* The same definitions are computed in plain
+  Python from the raw files, and a test compares every metric for all data, 2017 and
+  2018 plus three filtered cases. All 33 cases match, row by row.
+- *Why not let the LLM fill values into the SQL text?* The SQL is a fixed file and values
+  are bound parameters, so the database never treats a value as SQL. That removes SQL
+  injection on this path entirely.
+- *What does `AVG(price)` get wrong for average order value?* It averages item prices,
+  not orders. The metric divides revenue by the number of distinct orders, which gives
+  137.42 for all data.
+- *Why cast every placeholder (`%(state)s::text`)?* psycopg 3 sends values separately
+  from the SQL, and a NULL with no cast has no type, so Postgres cannot plan
+  `NULL IS NULL OR ...`.

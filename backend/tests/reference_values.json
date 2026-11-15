@@ -1,0 +1,1067 @@
+{
+ "metric_cases": [
+  {
+   "label": "merchandise_revenue / all data",
+   "metric_id": "merchandise_revenue",
+   "args": {
+    "start_date": "2016-09-04",
+    "end_date": "2018-10-17",
+    "state": null,
+    "category": null
+   },
+   "columns": [
+    "revenue",
+    "orders"
+   ],
+   "rows": [
+    [
+     "13494400.74",
+     98199
+    ]
+   ]
+  },
+  {
+   "label": "order_count / all data",
+   "metric_id": "order_count",
+   "args": {
+    "start_date": "2016-09-04",
+    "end_date": "2018-10-17",
+    "state": null
+   },
+   "columns": [
+    "orders"
+   ],
+   "rows": [
+    [
+     98207
+    ]
+   ]
+  },
+  {
+   "label": "average_order_value / all data",
+   "metric_id": "average_order_value",
+   "args": {
+    "start_date": "2016-09-04",
+    "end_date": "2018-10-17",
+    "state": null
+   },
+   "columns": [
+    "average_order_value",
+    "orders"
+   ],
+   "rows": [
+    [
+     "137.42",
+     98199
+    ]
+   ]
+  },
+  {
+   "label": "monthly_revenue / all data",
+   "metric_id": "monthly_revenue",
+   "args": {
+    "start_date": "2016-09-04",
+    "end_date": "2018-10-17",
+    "state": null,
+    "category": null
+   },
+   "columns": [
+    "month",
+    "revenue",
+    "orders"
+   ],
+   "rows": [
+    [
+     "2016-09-01",
+     "207.86",
+     2
+    ],
+    [
+     "2016-10-01",
+     "44507.30",
+     290
+    ],
+    [
+     "2016-12-01",
+     "10.90",
+     1
+    ],
+    [
+     "2017-01-01",
+     "120098.27",
+     787
+    ],
+    [
+     "2017-02-01",
+     "244959.35",
+     1718
+    ],
+    [
+     "2017-03-01",
+     "368341.32",
+     2617
+    ],
+    [
+     "2017-04-01",
+     "353842.98",
+     2377
+    ],
+    [
+     "2017-05-01",
+     "503159.19",
+     3640
+    ],
+    [
+     "2017-06-01",
+     "429916.61",
+     3205
+    ],
+    [
+     "2017-07-01",
+     "492287.30",
+     3946
+    ],
+    [
+     "2017-08-01",
+     "568245.79",
+     4272
+    ],
+    [
+     "2017-09-01",
+     "621415.91",
+     4227
+    ],
+    [
+     "2017-10-01",
+     "660179.62",
+     4547
+    ],
+    [
+     "2017-11-01",
+     "1003862.14",
+     7421
+    ],
+    [
+     "2017-12-01",
+     "742183.79",
+     5618
+    ],
+    [
+     "2018-01-01",
+     "945456.29",
+     7187
+    ],
+    [
+     "2018-02-01",
+     "837895.43",
+     6624
+    ],
+    [
+     "2018-03-01",
+     "981051.06",
+     7168
+    ],
+    [
+     "2018-04-01",
+     "993592.98",
+     6919
+    ],
+    [
+     "2018-05-01",
+     "992871.75",
+     6833
+    ],
+    [
+     "2018-06-01",
+     "863265.53",
+     6145
+    ],
+    [
+     "2018-07-01",
+     "878044.27",
+     6233
+    ],
+    [
+     "2018-08-01",
+     "848860.10",
+     6421
+    ],
+    [
+     "2018-09-01",
+     "145.00",
+     1
+    ]
+   ]
+  },
+  {
+   "label": "top_categories_by_revenue / all data",
+   "metric_id": "top_categories_by_revenue",
+   "args": {
+    "start_date": "2016-09-04",
+    "end_date": "2018-10-17",
+    "state": null,
+    "top_n": 5
+   },
+   "columns": [
+    "category",
+    "revenue",
+    "units"
+   ],
+   "rows": [
+    [
+     "health_beauty",
+     "1255695.13",
+     9634
+    ],
+    [
+     "watches_gifts",
+     "1198185.21",
+     5970
+    ],
+    [
+     "bed_bath_table",
+     "1035964.06",
+     11097
+    ],
+    [
+     "sports_leisure",
+     "979740.92",
+     8590
+    ],
+    [
+     "computers_accessories",
+     "904322.02",
+     7781
+    ]
+   ]
+  },
+  {
+   "label": "top_categories_by_units / all data",
+   "metric_id": "top_categories_by_units",
+   "args": {
+    "start_date": "2016-09-04",
+    "end_date": "2018-10-17",
+    "state": null,
+    "top_n": 5
+   },
+   "columns": [
+    "category",
+    "revenue",
+    "units"
+   ],
+   "rows": [
+    [
+     "bed_bath_table",
+     "1035964.06",
+     11097
+    ],
+    [
+     "health_beauty",
+     "1255695.13",
+     9634
+    ],
+    [
+     "sports_leisure",
+     "979740.92",
+     8590
+    ],
+    [
+     "furniture_decor",
+     "727465.05",
+     8298
+    ],
+    [
+     "computers_accessories",
+     "904322.02",
+     7781
+    ]
+   ]
+  },
+  {
+   "label": "revenue_by_state / all data",
+   "metric_id": "revenue_by_state",
+   "args": {
+    "start_date": "2016-09-04",
+    "end_date": "2018-10-17",
+    "top_n": 5
+   },
+   "columns": [
+    "state",
+    "revenue",
+    "orders"
+   ],
+   "rows": [
+    [
+     "SP",
+     "5163867.22",
+     41125
+    ],
+    [
+     "RJ",
+     "1811623.42",
+     12697
+    ],
+    [
+     "MG",
+     "1573508.20",
+     11496
+    ],
+    [
+     "RS",
+     "742559.78",
+     5415
+    ],
+    [
+     "PR",
+     "676883.06",
+     4982
+    ]
+   ]
+  },
+  {
+   "label": "repeat_customer_rate / all data",
+   "metric_id": "repeat_customer_rate",
+   "args": {
+    "start_date": "2016-09-04",
+    "end_date": "2018-10-17"
+   },
+   "columns": [
+    "repeat_rate_pct",
+    "repeat_customers",
+    "customers"
+   ],
+   "rows": [
+    [
+     "3.04",
+     2888,
+     94990
+    ]
+   ]
+  },
+  {
+   "label": "late_delivery_rate / all data",
+   "metric_id": "late_delivery_rate",
+   "args": {
+    "start_date": "2016-09-04",
+    "end_date": "2018-10-17",
+    "state": null
+   },
+   "columns": [
+    "late_rate_pct",
+    "late_orders",
+    "delivered_orders"
+   ],
+   "rows": [
+    [
+     "6.77",
+     6534,
+     96470
+    ]
+   ]
+  },
+  {
+   "label": "average_review_score / all data",
+   "metric_id": "average_review_score",
+   "args": {
+    "start_date": "2016-09-04",
+    "end_date": "2018-10-17",
+    "category": null
+   },
+   "columns": [
+    "average_score",
+    "reviews"
+   ],
+   "rows": [
+    [
+     "4.09",
+     99224
+    ]
+   ]
+  },
+  {
+   "label": "merchandise_revenue / 2017",
+   "metric_id": "merchandise_revenue",
+   "args": {
+    "start_date": "2017-01-01",
+    "end_date": "2017-12-31",
+    "state": null,
+    "category": null
+   },
+   "columns": [
+    "revenue",
+    "orders"
+   ],
+   "rows": [
+    [
+     "6108492.27",
+     44375
+    ]
+   ]
+  },
+  {
+   "label": "order_count / 2017",
+   "metric_id": "order_count",
+   "args": {
+    "start_date": "2017-01-01",
+    "end_date": "2017-12-31",
+    "state": null
+   },
+   "columns": [
+    "orders"
+   ],
+   "rows": [
+    [
+     44379
+    ]
+   ]
+  },
+  {
+   "label": "average_order_value / 2017",
+   "metric_id": "average_order_value",
+   "args": {
+    "start_date": "2017-01-01",
+    "end_date": "2017-12-31",
+    "state": null
+   },
+   "columns": [
+    "average_order_value",
+    "orders"
+   ],
+   "rows": [
+    [
+     "137.66",
+     44375
+    ]
+   ]
+  },
+  {
+   "label": "monthly_revenue / 2017",
+   "metric_id": "monthly_revenue",
+   "args": {
+    "start_date": "2017-01-01",
+    "end_date": "2017-12-31",
+    "state": null,
+    "category": null
+   },
+   "columns": [
+    "month",
+    "revenue",
+    "orders"
+   ],
+   "rows": [
+    [
+     "2017-01-01",
+     "120098.27",
+     787
+    ],
+    [
+     "2017-02-01",
+     "244959.35",
+     1718
+    ],
+    [
+     "2017-03-01",
+     "368341.32",
+     2617
+    ],
+    [
+     "2017-04-01",
+     "353842.98",
+     2377
+    ],
+    [
+     "2017-05-01",
+     "503159.19",
+     3640
+    ],
+    [
+     "2017-06-01",
+     "429916.61",
+     3205
+    ],
+    [
+     "2017-07-01",
+     "492287.30",
+     3946
+    ],
+    [
+     "2017-08-01",
+     "568245.79",
+     4272
+    ],
+    [
+     "2017-09-01",
+     "621415.91",
+     4227
+    ],
+    [
+     "2017-10-01",
+     "660179.62",
+     4547
+    ],
+    [
+     "2017-11-01",
+     "1003862.14",
+     7421
+    ],
+    [
+     "2017-12-01",
+     "742183.79",
+     5618
+    ]
+   ]
+  },
+  {
+   "label": "top_categories_by_revenue / 2017",
+   "metric_id": "top_categories_by_revenue",
+   "args": {
+    "start_date": "2017-01-01",
+    "end_date": "2017-12-31",
+    "state": null,
+    "top_n": 5
+   },
+   "columns": [
+    "category",
+    "revenue",
+    "units"
+   ],
+   "rows": [
+    [
+     "bed_bath_table",
+     "497970.94",
+     5216
+    ],
+    [
+     "watches_gifts",
+     "486519.02",
+     2270
+    ],
+    [
+     "health_beauty",
+     "481142.73",
+     3661
+    ],
+    [
+     "sports_leisure",
+     "447546.59",
+     4070
+    ],
+    [
+     "computers_accessories",
+     "400490.61",
+     3077
+    ]
+   ]
+  },
+  {
+   "label": "top_categories_by_units / 2017",
+   "metric_id": "top_categories_by_units",
+   "args": {
+    "start_date": "2017-01-01",
+    "end_date": "2017-12-31",
+    "state": null,
+    "top_n": 5
+   },
+   "columns": [
+    "category",
+    "revenue",
+    "units"
+   ],
+   "rows": [
+    [
+     "bed_bath_table",
+     "497970.94",
+     5216
+    ],
+    [
+     "furniture_decor",
+     "336272.26",
+     4131
+    ],
+    [
+     "sports_leisure",
+     "447546.59",
+     4070
+    ],
+    [
+     "health_beauty",
+     "481142.73",
+     3661
+    ],
+    [
+     "computers_accessories",
+     "400490.61",
+     3077
+    ]
+   ]
+  },
+  {
+   "label": "revenue_by_state / 2017",
+   "metric_id": "revenue_by_state",
+   "args": {
+    "start_date": "2017-01-01",
+    "end_date": "2017-12-31",
+    "top_n": 5
+   },
+   "columns": [
+    "state",
+    "revenue",
+    "orders"
+   ],
+   "rows": [
+    [
+     "SP",
+     "2190452.45",
+     17423
+    ],
+    [
+     "RJ",
+     "901158.52",
+     6138
+    ],
+    [
+     "MG",
+     "717852.50",
+     5323
+    ],
+    [
+     "RS",
+     "356704.72",
+     2631
+    ],
+    [
+     "PR",
+     "294101.24",
+     2229
+    ]
+   ]
+  },
+  {
+   "label": "repeat_customer_rate / 2017",
+   "metric_id": "repeat_customer_rate",
+   "args": {
+    "start_date": "2017-01-01",
+    "end_date": "2017-12-31"
+   },
+   "columns": [
+    "repeat_rate_pct",
+    "repeat_customers",
+    "customers"
+   ],
+   "rows": [
+    [
+     "2.83",
+     1220,
+     43034
+    ]
+   ]
+  },
+  {
+   "label": "late_delivery_rate / 2017",
+   "metric_id": "late_delivery_rate",
+   "args": {
+    "start_date": "2017-01-01",
+    "end_date": "2017-12-31",
+    "state": null
+   },
+   "columns": [
+    "late_rate_pct",
+    "late_orders",
+    "delivered_orders"
+   ],
+   "rows": [
+    [
+     "5.65",
+     2453,
+     43426
+    ]
+   ]
+  },
+  {
+   "label": "average_review_score / 2017",
+   "metric_id": "average_review_score",
+   "args": {
+    "start_date": "2017-01-01",
+    "end_date": "2017-12-31",
+    "category": null
+   },
+   "columns": [
+    "average_score",
+    "reviews"
+   ],
+   "rows": [
+    [
+     "4.09",
+     45044
+    ]
+   ]
+  },
+  {
+   "label": "merchandise_revenue / 2018",
+   "metric_id": "merchandise_revenue",
+   "args": {
+    "start_date": "2018-01-01",
+    "end_date": "2018-12-31",
+    "state": null,
+    "category": null
+   },
+   "columns": [
+    "revenue",
+    "orders"
+   ],
+   "rows": [
+    [
+     "7341182.41",
+     53531
+    ]
+   ]
+  },
+  {
+   "label": "order_count / 2018",
+   "metric_id": "order_count",
+   "args": {
+    "start_date": "2018-01-01",
+    "end_date": "2018-12-31",
+    "state": null
+   },
+   "columns": [
+    "orders"
+   ],
+   "rows": [
+    [
+     53532
+    ]
+   ]
+  },
+  {
+   "label": "average_order_value / 2018",
+   "metric_id": "average_order_value",
+   "args": {
+    "start_date": "2018-01-01",
+    "end_date": "2018-12-31",
+    "state": null
+   },
+   "columns": [
+    "average_order_value",
+    "orders"
+   ],
+   "rows": [
+    [
+     "137.14",
+     53531
+    ]
+   ]
+  },
+  {
+   "label": "monthly_revenue / 2018",
+   "metric_id": "monthly_revenue",
+   "args": {
+    "start_date": "2018-01-01",
+    "end_date": "2018-12-31",
+    "state": null,
+    "category": null
+   },
+   "columns": [
+    "month",
+    "revenue",
+    "orders"
+   ],
+   "rows": [
+    [
+     "2018-01-01",
+     "945456.29",
+     7187
+    ],
+    [
+     "2018-02-01",
+     "837895.43",
+     6624
+    ],
+    [
+     "2018-03-01",
+     "981051.06",
+     7168
+    ],
+    [
+     "2018-04-01",
+     "993592.98",
+     6919
+    ],
+    [
+     "2018-05-01",
+     "992871.75",
+     6833
+    ],
+    [
+     "2018-06-01",
+     "863265.53",
+     6145
+    ],
+    [
+     "2018-07-01",
+     "878044.27",
+     6233
+    ],
+    [
+     "2018-08-01",
+     "848860.10",
+     6421
+    ],
+    [
+     "2018-09-01",
+     "145.00",
+     1
+    ]
+   ]
+  },
+  {
+   "label": "top_categories_by_revenue / 2018",
+   "metric_id": "top_categories_by_revenue",
+   "args": {
+    "start_date": "2018-01-01",
+    "end_date": "2018-12-31",
+    "state": null,
+    "top_n": 5
+   },
+   "columns": [
+    "category",
+    "revenue",
+    "units"
+   ],
+   "rows": [
+    [
+     "health_beauty",
+     "770002.81",
+     5924
+    ],
+    [
+     "watches_gifts",
+     "708305.95",
+     3695
+    ],
+    [
+     "bed_bath_table",
+     "537514.13",
+     5873
+    ],
+    [
+     "sports_leisure",
+     "530182.18",
+     4503
+    ],
+    [
+     "computers_accessories",
+     "502432.09",
+     4683
+    ]
+   ]
+  },
+  {
+   "label": "top_categories_by_units / 2018",
+   "metric_id": "top_categories_by_units",
+   "args": {
+    "start_date": "2018-01-01",
+    "end_date": "2018-12-31",
+    "state": null,
+    "top_n": 5
+   },
+   "columns": [
+    "category",
+    "revenue",
+    "units"
+   ],
+   "rows": [
+    [
+     "health_beauty",
+     "770002.81",
+     5924
+    ],
+    [
+     "bed_bath_table",
+     "537514.13",
+     5873
+    ],
+    [
+     "computers_accessories",
+     "502432.09",
+     4683
+    ],
+    [
+     "sports_leisure",
+     "530182.18",
+     4503
+    ],
+    [
+     "furniture_decor",
+     "385312.01",
+     4098
+    ]
+   ]
+  },
+  {
+   "label": "revenue_by_state / 2018",
+   "metric_id": "revenue_by_state",
+   "args": {
+    "start_date": "2018-01-01",
+    "end_date": "2018-12-31",
+    "top_n": 5
+   },
+   "columns": [
+    "state",
+    "revenue",
+    "orders"
+   ],
+   "rows": [
+    [
+     "SP",
+     "2960471.25",
+     23599
+    ],
+    [
+     "RJ",
+     "901277.72",
+     6516
+    ],
+    [
+     "MG",
+     "851003.48",
+     6134
+    ],
+    [
+     "RS",
+     "382652.74",
+     2764
+    ],
+    [
+     "PR",
+     "380766.31",
+     2733
+    ]
+   ]
+  },
+  {
+   "label": "repeat_customer_rate / 2018",
+   "metric_id": "repeat_customer_rate",
+   "args": {
+    "start_date": "2018-01-01",
+    "end_date": "2018-12-31"
+   },
+   "columns": [
+    "repeat_rate_pct",
+    "repeat_customers",
+    "customers"
+   ],
+   "rows": [
+    [
+     "2.12",
+     1110,
+     52337
+    ]
+   ]
+  },
+  {
+   "label": "late_delivery_rate / 2018",
+   "metric_id": "late_delivery_rate",
+   "args": {
+    "start_date": "2018-01-01",
+    "end_date": "2018-12-31",
+    "state": null
+   },
+   "columns": [
+    "late_rate_pct",
+    "late_orders",
+    "delivered_orders"
+   ],
+   "rows": [
+    [
+     "7.73",
+     4078,
+     52777
+    ]
+   ]
+  },
+  {
+   "label": "average_review_score / 2018",
+   "metric_id": "average_review_score",
+   "args": {
+    "start_date": "2018-01-01",
+    "end_date": "2018-12-31",
+    "category": null
+   },
+   "columns": [
+    "average_score",
+    "reviews"
+   ],
+   "rows": [
+    [
+     "4.09",
+     53854
+    ]
+   ]
+  },
+  {
+   "label": "merchandise_revenue / 2018, state SP",
+   "metric_id": "merchandise_revenue",
+   "args": {
+    "start_date": "2018-01-01",
+    "end_date": "2018-12-31",
+    "state": "SP",
+    "category": null
+   },
+   "columns": [
+    "revenue",
+    "orders"
+   ],
+   "rows": [
+    [
+     "2960471.25",
+     23599
+    ]
+   ]
+  },
+  {
+   "label": "merchandise_revenue / 2017, health_beauty",
+   "metric_id": "merchandise_revenue",
+   "args": {
+    "start_date": "2017-01-01",
+    "end_date": "2017-12-31",
+    "state": null,
+    "category": "health_beauty"
+   },
+   "columns": [
+    "revenue",
+    "orders"
+   ],
+   "rows": [
+    [
+     "481142.73",
+     3382
+    ]
+   ]
+  },
+  {
+   "label": "average_review_score / all data, health_beauty",
+   "metric_id": "average_review_score",
+   "args": {
+    "start_date": "2016-09-04",
+    "end_date": "2018-10-17",
+    "category": "health_beauty"
+   },
+   "columns": [
+    "average_score",
+    "reviews"
+   ],
+   "rows": [
+    [
+     "4.18",
+     8826
+    ]
+   ]
+  }
+ ],
+ "row_multiplication_trap": {
+  "true_payment_total": "15739137.01",
+  "payment_total_after_joining_items": "20156175.58",
+  "total_freight": "2245816.19"
+ }
+}
