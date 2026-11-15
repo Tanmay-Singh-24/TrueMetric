@@ -3,6 +3,7 @@
 import pytest
 
 from truemetric import graph
+from truemetric import summarize as summarize_module
 from truemetric.freeform import GeneratedSQL
 from truemetric.llm import LLMError, LLMRateLimited
 from truemetric.router import RouterDecision
@@ -145,7 +146,7 @@ def test_a_single_value_answer_makes_no_llm_call(monkeypatch: pytest.MonkeyPatch
         raise AssertionError("the summary LLM was called")
 
     fake_router(monkeypatch, decision(metric_id="order_count", state="RJ"))
-    monkeypatch.setattr(graph, "summarize", no_summary)
+    monkeypatch.setattr(summarize_module, "summarize", no_summary)
     result = graph.ask("How many orders came from RJ?", summarize=True)
     assert result["answer"].startswith("Number of orders, 2016-09-04 – 2018-10-17, state RJ: ")
 
@@ -159,7 +160,7 @@ def test_a_table_metric_summary_is_told_the_metric(monkeypatch: pytest.MonkeyPat
         return "summary"
 
     fake_router(monkeypatch, decision(metric_id="top_categories_by_units", top_n=3))
-    monkeypatch.setattr(graph, "summarize", capture)
+    monkeypatch.setattr(summarize_module, "summarize", capture)
     graph.ask("Which category performs best?", summarize=True)
     assert contexts == [
         "Top categories by units sold: Product categories ranked by number of units sold."
