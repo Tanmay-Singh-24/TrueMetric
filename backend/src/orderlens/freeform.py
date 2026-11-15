@@ -26,7 +26,9 @@ SHARED_DEFINITIONS = """\
 - Never join order_items and order_payments in one query: both have many rows per order."""
 
 METRIC_DEFINITIONS = "\n".join(
-    f"- {metric.name}: {metric.definition} ({'; '.join(metric.notes)}.)" for metric in METRICS
+    f"- {metric.name} (also called {', '.join(metric.synonyms)}): {metric.definition} "
+    f"({'; '.join(metric.notes)}.)"
+    for metric in METRICS
 )
 
 SYSTEM_PROMPT = f"""\

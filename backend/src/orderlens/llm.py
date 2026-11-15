@@ -64,7 +64,7 @@ def invoke_with_retry(model: Runnable, messages: list) -> Any:
 
 
 def log_usage(label: str, reply: AIMessage) -> None:
-    """Log how many tokens one call used, to plan around Groq's rate limits."""
+    """Log how many tokens one call used; the eval adds up `total_tokens` from these logs."""
     usage = reply.usage_metadata or {}
     logger.info(
         "%s call: %s input + %s output = %s tokens",
@@ -72,6 +72,7 @@ def log_usage(label: str, reply: AIMessage) -> None:
         usage.get("input_tokens"),
         usage.get("output_tokens"),
         usage.get("total_tokens"),
+        extra={"total_tokens": usage.get("total_tokens") or 0},
     )
 
 

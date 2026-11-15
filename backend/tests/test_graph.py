@@ -71,7 +71,8 @@ def test_the_retry_goes_through_the_validator_too(monkeypatch: pytest.MonkeyPatc
     calls = fake_generator(monkeypatch, ["DELETE FROM orders", "DROP TABLE orders"])
     forbid_queries(monkeypatch)
     result = graph.ask("Remove old orders", mode="freeform_only")
-    assert result["status"] == "failed"
+    assert (result["status"], result["failure"]["reason"]) == ("failed", "validation_failed")
+    assert result["failure"]["sql"] == "DROP TABLE orders"
     assert len(calls) == 2
 
 
@@ -90,7 +91,10 @@ def test_a_rate_limit_gives_the_daily_limit_message(monkeypatch: pytest.MonkeyPa
 
     monkeypatch.setattr(graph, "route_question", rate_limited)
     result = graph.ask("What was our revenue in 2018?")
-    assert result == graph.response("failed", graph.DAILY_LIMIT_ANSWER)
+    assert (result["answer"], result["failure"]["reason"]) == (
+        graph.DAILY_LIMIT_ANSWER,
+        "rate_limited",
+    )
 
 
 def test_another_llm_error_gives_a_plain_failure(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -99,7 +103,10 @@ def test_another_llm_error_gives_a_plain_failure(monkeypatch: pytest.MonkeyPatch
 
     monkeypatch.setattr(graph, "route_question", broken)
     result = graph.ask("What was our revenue in 2018?")
-    assert result == graph.response("failed", graph.LLM_FAILED_ANSWER)
+    assert (result["answer"], result["failure"]["reason"]) == (
+        graph.LLM_FAILED_ANSWER,
+        "llm_error",
+    )
 
 
 @pytest.mark.db

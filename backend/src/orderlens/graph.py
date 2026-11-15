@@ -52,6 +52,8 @@ class State(TypedDict, total=False):
     explanation: str | None
     cannot_answer: str | None  # the generator's reason when the data cannot answer
     error: str | None
+    failure_reason: Literal["validation_failed", "execution_error"] | None
+    failure: dict | None  # reason, detail and last SQL of a failed run
     attempts: int
     columns: list[str]
     rows: list[list]
@@ -89,14 +91,20 @@ def validate_sql_node(state: State) -> dict:
     try:
         return {"sql": validate_sql(state["sql"])}
     except UnsafeSQL as error:
-        return {"error": f"rejected by the validator: {error}"}
+        return {
+            "error": f"rejected by the validator: {error}",
+            "failure_reason": "validation_failed",
+        }
 
 
 def execute_sql_node(state: State) -> dict:
     try:
         columns, rows = run_query(state["sql"])
     except RETRYABLE_SQL_ERRORS as error:
-        return {"error": f"the database rejected the query: {str(error).strip()}"}
+        return {
+            "error": f"the database rejected the query: {str(error).strip()}",
+            "failure_reason": "execution_error",
+        }
     return {"columns": columns, "rows": rows}
 
 
@@ -130,7 +138,8 @@ def refuse_node(state: State) -> dict:
 
 
 def fail_node(state: State) -> dict:
-    return {"status": "failed", "answer": FAILED_ANSWER}
+    failure = {"reason": state["failure_reason"], "detail": state["error"], "sql": state["sql"]}
+    return {"status": "failed", "answer": FAILED_ANSWER, "failure": failure}
 
 
 def start_at(state: State) -> Literal["route", "generate_sql"]:
@@ -209,15 +218,34 @@ def audit_from_state(state: State, duration_ms: int) -> Audit:
 
 
 def response(status: str, answer: str, **fields: object) -> dict:
-    """The response shape of ARCHITECTURE.md section 6.7, with empty defaults."""
-    empty = {"headline": None, "columns": [], "rows": [], "audit": None, "options": []}
+    """The response of ARCHITECTURE.md section 6.7 with empty defaults, plus `failure`."""
+    # `failure` (reason, detail, last SQL) is for the eval and the logs; the API leaves
+    # it out of what it returns.
+    empty = {
+        "headline": None,
+        "columns": [],
+        "rows": [],
+        "audit": None,
+        "options": [],
+        "failure": None,
+    }
     return {"status": status, "answer": answer, **empty, **fields}
+
+
+def failure(reason: str, error: Exception) -> dict:
+    """The failure details of a run that an exception ended."""
+    return {"reason": reason, "detail": str(error), "sql": None}
 
 
 def response_from_state(state: State, duration_ms: int) -> dict:
     """Turn the graph's final state into the response."""
     if state["status"] != "answered":
-        return response(state["status"], state["answer"], options=state.get("options", []))
+        return response(
+            state["status"],
+            state["answer"],
+            options=state.get("options", []),
+            failure=state.get("failure"),
+        )
     audit = audit_from_state(state, duration_ms)
     return response(
         "answered",
@@ -247,14 +275,14 @@ def ask(
     # LLM and connection errors are not retried by the graph: they end the run here.
     try:
         state = GRAPH.invoke(initial)
-    except LLMRateLimited:
+    except LLMRateLimited as error:
         logger.warning("Groq rate limit reached")
-        return response("failed", DAILY_LIMIT_ANSWER)
-    except LLMError:
+        return response("failed", DAILY_LIMIT_ANSWER, failure=failure("rate_limited", error))
+    except LLMError as error:
         logger.exception("LLM call failed")
-        return response("failed", LLM_FAILED_ANSWER)
-    except psycopg.OperationalError:
+        return response("failed", LLM_FAILED_ANSWER, failure=failure("llm_error", error))
+    except psycopg.OperationalError as error:
         logger.exception("database error")
-        return response("failed", DATABASE_FAILED_ANSWER)
+        return response("failed", DATABASE_FAILED_ANSWER, failure=failure("database_error", error))
     duration_ms = round((time.perf_counter() - started) * 1000)
     return response_from_state(state, duration_ms)
