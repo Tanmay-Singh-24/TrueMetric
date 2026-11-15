@@ -104,9 +104,19 @@ No single layer is trusted alone.
 
 | Layer | Stops |
 |---|---|
-| SQL validator (sqlglot) | Anything not on its **allowlists**: every query block must be a plain `SELECT`, every table one of the seven, every column real, every function listed. A write hidden in a CTE, `pg_sleep`, `dblink` or `table_to_xml` is rejected because it is not on a list, not because someone thought to ban it |
-| Read-only database role | Writes, even if a query got past the validator: the role has `SELECT` on seven tables and nothing else |
-| 5-second statement timeout | Runaway queries; set on the role itself |
+| SQL validator (sqlglot) | Anything not on its **allowlists**: one `SELECT`, every syntax node listed, every function listed, casts only to plain types, every table one of the seven (or a CTE the name really refers to), every column real. A write hidden in a CTE, `pg_sleep`, `'pg_authid'::regclass` or `OPERATOR(...)` is rejected because it is not on a list, not because someone thought to ban it |
+| Read-only database role | Writes, and reads of tables outside the seven. It cannot stop reads of the system catalog or calls to `pg_sleep`, which every Postgres role may make by default; those are the validator's job |
+| 5-second statement timeout | Runaway queries; set on the role. A session could override it with `SET` or `set_config`, which is why the validator rejects both |
+
+**How do we know a model-written query cannot escape the validator?**
+`backend/tests/test_validator_attacks.py` attacks it: hand-written tricks by category
+(nested and scoped CTEs, set operations, quoted and schema-qualified names, aliases,
+wildcards, dangerous functions in every clause, casts, Postgres-only syntax) and a
+generator that hides 16 dangerous queries in about 15,500 ways (every wrapper, every pair
+of wrappers, ten levels deep), with a control showing the same wrappers around a safe
+query pass. Writing it found and fixed four ways to read the system catalog through CTE
+names, casts to catalog types and a blind spot in the column check. Tests show the tricks
+tried are stopped, not that none exists; that is why everything is an allowlist.
 | Metric path | Never runs LLM-written SQL; SQL text is fixed and values are bound parameters |
 | API | Questions over 300 characters (422), more than 10 requests a minute per IP or 300 a day in total (429), origins outside `CORS_ORIGINS` |
 

@@ -493,8 +493,71 @@
   Python; and the eval that compares free-form SQL alone with the full system.
 
 **Likely interview questions:**
-- *How does the validator stop a DELETE hidden inside a CTE?* It checks the shape of the
-  whole query: the top level and every CTE and subquery must be a plain SELECT. A CTE
-  whose body is a DELETE fails that check, without DELETE being on any list.
+- *How does the validator stop a DELETE hidden inside a CTE?* Every node in the parse
+  tree must be on the syntax allowlist, and a DELETE node is not on it, so the query is
+  rejected without DELETE being named anywhere. (Before the attack tests below, a
+  separate shape check did this; the syntax allowlist now covers it.)
 - *Why does every rejection say what is allowed?* The message goes back to the LLM on the
   retry; "users is not a table. Tables: customers, …" lets it correct itself in one try.
+
+## Attack testing the validator
+
+**What was built:**
+- `tests/test_validator_attacks.py`: 75 hand-written attacks grouped by trick, and
+  a generator that hides 16 dangerous queries in every wrapper, every pair of wrappers
+  and ten levels of each wrapper (about 15,500 queries), with a control showing the same
+  wrappers around a safe query are accepted.
+- `validator.py` now allowlists every node in the parse tree (`ALLOWED_SYNTAX`), the
+  target type of every CAST (`ALLOWED_TYPES`), and resolves CTE names by Postgres's rule.
+
+**Why it is built this way:**
+- 28 gold queries and 10 metric files passing proves the validator accepts the real
+  workload. It says nothing about whether a hostile query can get through; only trying
+  to get through does.
+- Listing only "dangerous" parts (functions, tables) leaves a gap for anything nobody
+  thought dangerous. Listing every kind of node closes it: `OPERATOR(...)`, `(o).name`
+  and `$1` were all accepted before, though nobody had written a rule for them.
+- The control matters: without it, a wrapper that is itself invalid would make every
+  "dangerous query rejected" result meaningless.
+- Names are folded the way Postgres folds them before any comparison, because the
+  validator must reach the same answer as Postgres about which table a name means.
+- Comments are dropped from the SQL that runs, so nothing depends on how a comment is
+  read. (sqlglot already neutralised `*/` and `/*` inside comments, checked with
+  Postgres's own parser; dropping them removes the dependence on that.)
+
+**What went wrong:**
+- Four ways to read the system catalog: a CTE name defined inside one subquery "covered"
+  a real `pg_roles` elsewhere (CTE names were treated as global); a CTE reading its own
+  name or a later CTE's name reaches the real table without `RECURSIVE`; and a quoted
+  CTE name `"Pg_Roles"` did not cover the unquoted `Pg_Roles`, which Postgres reads as
+  `pg_roles`. Fix: names are compared as Postgres folds them, `WITH` may only start the
+  query, and a CTE can only refer to CTEs listed before it.
+- `CAST(x AS regclass)` and friends were accepted; cast types were not checked.
+- The generator found a blind spot in sqlglot's `qualify`: it does not look inside the
+  ORDER BY, LIMIT or OFFSET of a UNION. A subquery there is now rejected.
+- A query nested about 100 levels deep raised `RecursionError` instead of `UnsafeSQL`.
+  Nothing ran, but it was a crash, not a rejection; now it is a rejection.
+- The read-only role was described as an independent layer. It is not one for catalog
+  reads: by default every Postgres role can read `pg_roles` and `pg_settings` and call
+  `pg_sleep` and `set_config`, and the timeout is a role default a session can override.
+  The validator is the only layer that stops those.
+
+**Likely interview questions:**
+- *How do you know a model-written query cannot escape your restrictions?* Three things.
+  The validator accepts only what it lists, down to every node of the parse tree, so
+  something new is rejected by default; an attack suite tries every trick by category
+  and hides each dangerous query about a thousand ways, with a control proving the
+  wrappers themselves are accepted; and, as a one-off check, 1,122 accepted queries were
+  parsed with Postgres's own parser, which saw only the allowed tables, functions and
+  types. Tests
+  cannot prove no trick exists, so the read-only role and the timeout stay behind it.
+- *What did the attack tests find?* Four ways to read the system catalog through CTE
+  names, casts to catalog types, three kinds of unlisted syntax, and a place where
+  sqlglot's column check never looks. All fixed and pinned by tests.
+- *Why can't the read-only role alone protect you?* Postgres lets every role read most
+  of the system catalog and call functions like `pg_sleep` by default, and a session can
+  change its own statement timeout. The role stops writes and other tables; the
+  validator has to stop the rest.
+- *Why regenerate the SQL instead of running what the model wrote?* What runs is built
+  from the tree that was checked, so the checks and the database see the same query; any
+  trick that depends on text the parser reads one way and Postgres another is gone.

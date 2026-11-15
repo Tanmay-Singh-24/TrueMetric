@@ -399,38 +399,74 @@ class GeneratedSQL(BaseModel):
 
 On a retry the prompt also includes the previous SQL and the error message.
 
-**validate_sql(sql) → str** returns the safe SQL or raises `UnsafeSQL`. A query runs
-only if every part of it is on an **allowlist**:
+**validate_sql(sql) → str** returns the safe SQL or raises `UnsafeSQL`. The SQL is
+parsed into a tree (Postgres dialect), with names folded the way Postgres folds them:
+unquoted names to lower case, quoted names kept exactly. It runs only if every part of
+the tree is on an **allowlist**:
 
-1. **Shape** — the text parses as exactly one statement (Postgres dialect), and the query
-   and every CTE and subquery in it is a plain `SELECT` (or a `UNION`/`INTERSECT`/`EXCEPT`
-   of them). No `SELECT ... INTO` and no `FOR UPDATE`/`FOR SHARE`. A write hidden in a
-   CTE, DDL or a raw command is rejected because it is not on the list.
-2. **Tables** — only the seven schema tables or CTEs defined in the query; no
-   schema-qualified names.
-3. **Functions** — only those on the allowlist, built from what the metric SQL and the
-   eval's gold SQL need (aggregates, `COALESCE`, `NULLIF`, `ROUND`, `CAST`, `CASE`,
-   `DATE`, `DATE_TRUNC`, `EXTRACT`, `LOWER`, `UPPER`, window ranking functions) and
-   extended only deliberately.
-4. **Columns** — every column exists (`sqlglot.optimizer.qualify` against the parsed
-   schema).
-5. **Row limit** — a top-level `LIMIT 200` is added if missing and lowered if larger;
+1. **Shape** — exactly one statement, and it is a `SELECT` (or a `UNION`/`INTERSECT`/
+   `EXCEPT`).
+2. **Syntax** — every node in the tree is on `ALLOWED_SYNTAX` (clauses, names, literals,
+   comparison and arithmetic operators) or `ALLOWED_FUNCTIONS` (aggregates, `COALESCE`,
+   `NULLIF`, `ROUND`, `CAST`, `CASE`, `DATE`, `DATE_TRUNC`, `EXTRACT`, `LOWER`, `UPPER`,
+   window ranking functions). A write inside a CTE, `INTO`, `FOR UPDATE`, `LATERAL`,
+   `OPERATOR(...)`, a `$1` placeholder and `pg_sleep` are all rejected without any of
+   them being named.
+3. **Types** — a `CAST` converts only to plain value types (dates, timestamps, integers,
+   numeric, double, text). Casting a name to `regclass` or `regproc` looks it up in the
+   system catalog.
+4. **Tables** — every table is one of the seven, or a CTE that the name really refers to
+   at that point under Postgres's rule: the main query sees every CTE, but a CTE sees
+   only the CTEs listed before it. Any other name would be looked up as a real table.
+   No schema-qualified names, no `WITH` inside a subquery, no `WITH RECURSIVE`.
+5. **Columns** — every column exists (`sqlglot.optimizer.qualify` against the parsed
+   schema). This also blocks Postgres's `alias.name` call syntax, where a name that is
+   not a column calls the function of that name. No subquery is allowed in the
+   `ORDER BY`, `LIMIT` or `OFFSET` of a set operation, because `qualify` does not look
+   there.
+6. **Row limit** — a top-level `LIMIT 200` is added if missing and lowered if larger;
    a limit that is not a plain number is kept inside an outer `LIMIT 200`.
 
-Every rejection names what *is* allowed (the seven tables, the allowed functions), so
-the one retry has what it needs to fix the query.
+The SQL that runs is regenerated from the checked tree, without comments, so what runs is
+what was checked. A query nested too deeply for the parser is rejected, not crashed on.
+Every rejection names what *is* allowed (the seven tables, the allowed functions or
+types), so the one retry has what it needs to fix the query.
 
-Allowlists are used throughout because a blocklist only stops what someone
-thought of. The table and column maps come from `schema.py`, which parses
-`sql/schema.sql` with sqlglot — there is no database introspection code.
+Allowlists are used throughout because a blocklist only stops what someone thought of.
+The table and column maps come from `schema.py`, which parses `sql/schema.sql` with
+sqlglot — there is no database introspection code.
 
-**Safety does not rest on the validator alone.** Three independent layers:
+**How we know it holds.** `tests/test_validator_attacks.py` tries to get past it:
 
-| Layer | Stops |
-|---|---|
-| Validator | Anything that is not a single read-only query over known tables, columns and functions |
-| Read-only role | Writes, even if a query somehow passed the validator |
-| 5-second statement timeout | Runaway queries |
+- hand-written attacks grouped by trick: nested subqueries and CTEs, CTE name scope,
+  `UNION`/`INTERSECT`/`EXCEPT`, quoted and schema-qualified names, aliases and ambiguous
+  columns, `SELECT *` and qualified wildcards, dangerous functions in every clause, casts,
+  and Postgres-only statements and syntax;
+- a generator that hides 16 dangerous queries inside 17 wrappers (subquery, join,
+  `IN`, `EXISTS`, `CASE`, `HAVING`, `FILTER`, window, `LIMIT`, `UNION`, …), inside every
+  pair of wrappers, and ten levels deep in each, each also inside three CTE forms: about
+  15,500 queries, none of which may pass. The same wrappers around a safe query must all
+  pass, so every rejection is caused by the dangerous query, not the wrapper.
+
+Writing this suite found real bypasses in the earlier version, all now fixed and pinned by
+tests: four ways to read the system catalog through CTE names (a CTE name used outside
+its subquery, a CTE reading its own name, a CTE reading a later one, a quoted CTE name
+read without quotes), casts to catalog types, three kinds of unlisted syntax, and a blind
+spot in the column check. As a one-off check during development (not in the test suite,
+because it needs an extra library), the 1,122 queries the tests and eval runs accept were
+parsed with Postgres's own parser (libpg_query): it saw only the seven tables, the
+allowed functions and the allowed types. Tests can only show that the tricks
+tried are stopped, not that no other trick exists — which is why the validator rejects
+anything it does not list.
+
+**The layers behind it are not fully independent**, and the validator is the one that
+matters most:
+
+| Layer | Stops | Does not stop |
+|---|---|---|
+| Validator | Anything that is not one query over the seven tables, using listed syntax, functions and types | — |
+| Read-only role | Writes; reads of any table outside the seven | The system catalog (`pg_roles`, `pg_class`, `pg_settings`) and functions such as `pg_sleep` and `set_config`, which every Postgres role may use by default |
+| 5-second statement timeout | Runaway queries | A session that sets its own timeout: it is a role default, so `SET` or `set_config` could turn it off — the validator rejects both |
 
 The metric path skips the validator (its SQL is reviewed code) but uses the same
 read-only connection and timeout.
@@ -665,7 +701,8 @@ add a row.
 | Stateless clarify (resend with `metric_id`) | No conversation storage, no write access to the DB | LangGraph checkpointer + interrupt |
 | Whole schema in the prompt | Seven tables fit easily; retrieval would add a failure mode for no gain | Schema RAG with a vector store |
 | `schema.sql` as single source of truth | The DB, the prompt and the validator cannot drift apart | Runtime introspection |
-| Allowlists throughout the validator (query shape, tables, functions, columns) | A blocklist only stops what someone thought of; with allowlists anything new is rejected by default, and each rejection can say what is allowed | Blocklists of write nodes and dangerous functions |
+| Allowlists throughout the validator (shape, every syntax node, functions, cast types, tables, columns) | A blocklist only stops what someone thought of; with allowlists anything new is rejected by default, and each rejection can say what is allowed | Blocklists of write nodes and dangerous functions |
+| Attack tests with a payload-by-wrapper generator, plus a safe-query control | 28 gold queries passing shows the validator accepts the real workload, not that it is secure; generated hidings cover combinations no one would write by hand, and the control proves each rejection comes from the payload | Only hand-written negative examples |
 | Validator + read-only role + timeout | Each layer covers a different failure; none is trusted alone | Trusting the prompt, or the validator alone |
 | Headline number formatted by code | The one number users read first never passes through the model | Letting the summary carry the number |
 | Single-value answers built by code; summaries told what the rows are | A single number needs no LLM, so it cannot be misstated or cost tokens. A table summary given only rows named the revenue leader after the user chose "units sold"; the metric's name and definition (or the generator's explanation) tell it what the rows mean | Summarising every result from the rows alone |
