@@ -127,8 +127,8 @@
   writes anywhere, known tables, allowlisted functions, known columns, row limit).
 - `llm.py` (the only place that creates the Groq model, with one retry for malformed
   structured output) and `freeform.py` (prompt, `GeneratedSQL`, `generate_sql()`).
-- `scripts/try_freeform.py`: generate → validate → execute with one retry, from the
-  terminal.
+- A terminal script to try the free-form loop (removed later: `scripts/ask.py --mode
+  freeform_only` runs the same path through the real graph).
 
 **Why it is built this way:**
 - Functions are checked against an allowlist of sqlglot node types. Anything sqlglot
@@ -457,3 +457,44 @@
 - *How does the wind work?* Each frame, the cloud density near the pointer is reduced by a
   Gaussian bump; the bump's position eases towards the pointer, so the gap trails behind
   it like moving air.
+
+## Cleanup — making every part easy to defend
+
+**What changed:**
+- `validator.py` is now allowlists only. A query runs if every part of it is on a list:
+  its shape (the query and every CTE and subquery is a plain SELECT, no INTO, no row
+  locks), its tables (the seven, or its own CTEs), its functions and its columns. The old
+  list of "write nodes" to block is gone.
+- Every rejection names what *is* allowed ("users is not a table. Tables: …"), so the one
+  retry gets what it needs to fix the query.
+- `graph.py` is only wiring and `ask()`. The answer decision (code-built single value,
+  fallback, or LLM summary with context) is `write_answer()` in `summarize.py`; building
+  the response and audit is `response.py`.
+- Removed `scripts/try_freeform.py`, a second copy of the retry loop; `scripts/ask.py
+  --mode freeform_only` runs the same path through the real graph.
+- The free-form prompt reads the data window from `registry.py`, so the dates have one
+  source.
+
+**Why:**
+- The project's own argument is "allowlist, not blocklist". A blocklist of write nodes
+  contradicted it: it only stops the statement types someone listed. Now a write hidden
+  in a CTE is rejected because a DELETE is not a SELECT, not because DELETE was named.
+- "Nodes are thin" was not true while `summarize_node` made decisions. Each module now
+  has one job, and the answer logic has its own unit tests.
+
+**What is standard and what is this project's own:**
+- Standard (common to many text-to-SQL systems): an LLM writes SQL, a parser checks it,
+  it runs read-only, and an error goes back to the model once. Scoring by comparing result
+  rows rather than SQL text is the usual "execution accuracy" method.
+- This project's own: the verified metric layer in front of the LLM; the router and
+  `check_decision` ("fall back rather than guess"); clarifying questions from the
+  catalogue; single values and the audit trail built by code; the allowlist-only
+  validator driven by `schema.sql`; reference values computed independently in plain
+  Python; and the eval that compares free-form SQL alone with the full system.
+
+**Likely interview questions:**
+- *How does the validator stop a DELETE hidden inside a CTE?* It checks the shape of the
+  whole query: the top level and every CTE and subquery must be a plain SELECT. A CTE
+  whose body is a DELETE fails that check, without DELETE being on any list.
+- *Why does every rejection say what is allowed?* The message goes back to the LLM on the
+  retry; "users is not a table. Tables: customers, …" lets it correct itself in one try.

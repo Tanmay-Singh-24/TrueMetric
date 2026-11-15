@@ -104,7 +104,7 @@ No single layer is trusted alone.
 
 | Layer | Stops |
 |---|---|
-| SQL validator (sqlglot) | Anything but one read-only `SELECT` over the seven tables, known columns and an **allowlist** of functions (`pg_sleep`, `dblink`, `table_to_xml`… are rejected because they are not on it) |
+| SQL validator (sqlglot) | Anything not on its **allowlists**: every query block must be a plain `SELECT`, every table one of the seven, every column real, every function listed. A write hidden in a CTE, `pg_sleep`, `dblink` or `table_to_xml` is rejected because it is not on a list, not because someone thought to ban it |
 | Read-only database role | Writes, even if a query got past the validator: the role has `SELECT` on seven tables and nothing else |
 | 5-second statement timeout | Runaway queries; set on the role itself |
 | Metric path | Never runs LLM-written SQL; SQL text is fixed and values are bound parameters |
@@ -209,7 +209,7 @@ uv run --env-file .env python -m evals.run_eval --config full --resume
   comes from `X-Forwarded-For`, which a client can spoof. Acceptable for a free demo.
 - Free tiers: Groq allows 8,000 tokens a minute and 1,000 requests a day for this model,
   and Render's free service sleeps when idle, so the first request can take up to a minute.
-- The evaluation is one run per configuration on 36 questions written by the builder.
+- The evaluation is one run per configuration on 36 questions written by the project's author.
 
 ## Stack
 
@@ -217,9 +217,3 @@ Python 3.12, LangGraph, Groq (`openai/gpt-oss-120b`), PostgreSQL on Neon, psycop
 sqlglot, FastAPI, Vite + React + TypeScript, LangSmith tracing, ruff, pytest, GitHub
 Actions. Design documents: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md),
 [docs/METRICS.md](docs/METRICS.md).
-
-## Credit
-
-The free-form path's shape (generate → validate → execute → retry) and the
-result-comparison evaluation method follow the approach of
-[TourQuery](https://github.com/DefKd911/TourQuery). No code is taken from it.

@@ -236,7 +236,7 @@ a phase needs it, stop and ask.
 - README: what it is and the live link; a screenshot; the results table from the eval
   (real numbers only); the flow diagram; the row-multiplication example from METRICS.md;
   the safety layers; data source and loader decisions; how to run it locally; known
-  limits; the TourQuery credit.
+  limits.
 
 Deploying needs Tanmay's accounts. Prepare everything, then walk through the steps with
 him; do not create accounts or enter credentials.

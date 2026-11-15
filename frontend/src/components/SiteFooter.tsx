@@ -1,4 +1,4 @@
-import { DATASET_URL, REPO_URL, TOURQUERY_URL } from "../links";
+import { DATASET_URL, REPO_URL } from "../links";
 
 export function SiteFooter() {
   return (
@@ -22,12 +22,9 @@ export function SiteFooter() {
           </a>
         </div>
         <div>
-          <p className="eyebrow">Credits</p>
+          <p className="eyebrow">Data</p>
           <a href={DATASET_URL} target="_blank" rel="noreferrer">
             Olist dataset (MIT) ↗
-          </a>
-          <a href={TOURQUERY_URL} target="_blank" rel="noreferrer">
-            Approach: TourQuery ↗
           </a>
         </div>
       </div>

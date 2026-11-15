@@ -90,7 +90,6 @@ clever, short or "production-grade".
 - Every number in the README and the eval report comes from a run in this repository.
   No estimated, rounded-up or expected figures.
 - If the eval shows the metric layer helps less than hoped, the report says so.
-- Do not copy code from the TourQuery repository. The README credits it for the approach.
 
 ## `docs/STUDY_NOTES.md`
 

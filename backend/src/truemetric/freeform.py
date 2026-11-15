@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from truemetric.llm import invoke_structured
 from truemetric.lookups import known_categories
 from truemetric.metrics.catalog import METRICS
+from truemetric.metrics.registry import DATA_END, DATA_START
 from truemetric.schema import SCHEMA_SQL
 
 
@@ -34,7 +35,7 @@ METRIC_DEFINITIONS = "\n".join(
 
 SYSTEM_PROMPT = """\
 You write one PostgreSQL SELECT statement that answers a question about an online store's
-orders in Brazil, placed between 2016-09-04 and 2018-10-17.
+orders in Brazil, placed between {data_start} and {data_end}.
 
 Database schema:
 {schema}
@@ -63,6 +64,8 @@ def system_prompt() -> str:
     # The category names are the same list the router sees, so a question that says
     # "watches and gifts" can be matched to watches_gifts on either path.
     return SYSTEM_PROMPT.format(
+        data_start=DATA_START,
+        data_end=DATA_END,
         schema=SCHEMA_SQL,
         shared_definitions=SHARED_DEFINITIONS,
         metric_definitions=METRIC_DEFINITIONS,

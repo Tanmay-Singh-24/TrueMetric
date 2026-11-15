@@ -1,7 +1,8 @@
 """LangGraph wiring for one question, and ask(), the only entry point.
 
 Every node is thin: it calls a plain function from another module and returns the state
-fields it changed. All logic is testable without LangGraph.
+fields it changed, so all logic is testable without LangGraph. Building the response from
+the final state is response.py's job.
 """
 
 import logging
@@ -11,12 +12,11 @@ from typing import Literal, TypedDict
 import psycopg
 from langgraph.graph import END, START, StateGraph
 
-from truemetric.audit import Audit, build_audit, format_answer, format_headline
-from truemetric.config import settings
 from truemetric.db import run_query
 from truemetric.freeform import generate_sql
 from truemetric.llm import LLMError, LLMRateLimited
 from truemetric.metrics.registry import get_metric, metric_sql, run_metric, validate_args
+from truemetric.response import failure, make_response, response_from_state
 from truemetric.router import (
     RouterDecision,
     build_clarification,
@@ -24,7 +24,7 @@ from truemetric.router import (
     filter_args,
     route_question,
 )
-from truemetric.summarize import FALLBACK_ANSWER, summarize
+from truemetric.summarize import write_answer
 from truemetric.validator import UnsafeSQL, validate_sql
 
 logger = logging.getLogger(__name__)
@@ -110,17 +110,16 @@ def execute_sql_node(state: State) -> dict:
 
 def summarize_node(state: State) -> dict:
     metric = get_metric(state["decision"].metric_id) if "metric_args" in state else None
-    headline = format_headline(metric, state["columns"], state["rows"]) if metric else None
-    if headline is not None:
-        # A single value needs no LLM: the answer is built by code from what ran.
-        answer = format_answer(metric, state["metric_args"], headline)
-        return {"status": "answered", "headline": headline, "answer": answer}
-    if not state["summarize"]:
-        return {"status": "answered", "headline": None, "answer": FALLBACK_ANSWER}
-    # Tell the summary what the rows mean: the metric, or the generator's explanation.
-    context = f"{metric.name}: {metric.definition}" if metric else state.get("explanation")
-    answer = summarize(state["question"], context, state["columns"], state["rows"])
-    return {"status": "answered", "headline": None, "answer": answer}
+    answer, headline = write_answer(
+        state["question"],
+        metric,
+        state.get("metric_args"),
+        state.get("explanation"),
+        state["columns"],
+        state["rows"],
+        use_llm=state["summarize"],
+    )
+    return {"status": "answered", "answer": answer, "headline": headline}
 
 
 def clarify_node(state: State) -> dict:
@@ -198,65 +197,6 @@ def build_graph() -> StateGraph:
 GRAPH = build_graph()
 
 
-def audit_from_state(state: State, duration_ms: int) -> Audit:
-    """The audit trail of an answered question, from what actually ran."""
-    row_count = len(state["rows"])
-    if "metric_args" in state:
-        metric = get_metric(state["decision"].metric_id)
-        args = state["metric_args"]
-        return build_audit(metric, args, state["sql"], row_count, duration_ms, settings.groq_model)
-    return build_audit(
-        None,
-        {},
-        state["sql"],
-        row_count,
-        duration_ms,
-        settings.groq_model,
-        explanation=state.get("explanation"),
-        attempts=state["attempts"],
-    )
-
-
-def response(status: str, answer: str, **fields: object) -> dict:
-    """The response of ARCHITECTURE.md section 6.7 with empty defaults, plus `failure`."""
-    # `failure` (reason, detail, last SQL) is for the eval and the logs; the API leaves
-    # it out of what it returns.
-    empty = {
-        "headline": None,
-        "columns": [],
-        "rows": [],
-        "audit": None,
-        "options": [],
-        "failure": None,
-    }
-    return {"status": status, "answer": answer, **empty, **fields}
-
-
-def failure(reason: str, error: Exception) -> dict:
-    """The failure details of a run that an exception ended."""
-    return {"reason": reason, "detail": str(error), "sql": None}
-
-
-def response_from_state(state: State, duration_ms: int) -> dict:
-    """Turn the graph's final state into the response."""
-    if state["status"] != "answered":
-        return response(
-            state["status"],
-            state["answer"],
-            options=state.get("options", []),
-            failure=state.get("failure"),
-        )
-    audit = audit_from_state(state, duration_ms)
-    return response(
-        "answered",
-        state["answer"],
-        headline=state["headline"],
-        columns=state["columns"],
-        rows=state["rows"],
-        audit=audit.model_dump(),
-    )
-
-
 def ask(
     question: str,
     metric_id: str | None = None,
@@ -277,12 +217,14 @@ def ask(
         state = GRAPH.invoke(initial)
     except LLMRateLimited as error:
         logger.warning("Groq rate limit reached")
-        return response("failed", DAILY_LIMIT_ANSWER, failure=failure("rate_limited", error))
+        return make_response("failed", DAILY_LIMIT_ANSWER, failure=failure("rate_limited", error))
     except LLMError as error:
         logger.exception("LLM call failed")
-        return response("failed", LLM_FAILED_ANSWER, failure=failure("llm_error", error))
+        return make_response("failed", LLM_FAILED_ANSWER, failure=failure("llm_error", error))
     except psycopg.OperationalError as error:
         logger.exception("database error")
-        return response("failed", DATABASE_FAILED_ANSWER, failure=failure("database_error", error))
+        return make_response(
+            "failed", DATABASE_FAILED_ANSWER, failure=failure("database_error", error)
+        )
     duration_ms = round((time.perf_counter() - started) * 1000)
     return response_from_state(state, duration_ms)

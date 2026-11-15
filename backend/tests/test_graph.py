@@ -82,7 +82,7 @@ def test_the_retry_is_shown_the_failed_sql_and_error(monkeypatch: pytest.MonkeyP
     graph.ask("How many sellers?", mode="freeform_only")
     previous_sql, error = calls[1]
     assert previous_sql == "SELECT nope FROM sellers"
-    assert "column check failed" in error
+    assert "column does not exist" in error
 
 
 def test_a_rate_limit_gives_the_daily_limit_message(monkeypatch: pytest.MonkeyPatch) -> None:

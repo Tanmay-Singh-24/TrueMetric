@@ -262,8 +262,9 @@ truemetric/
       freeform.py           generate_sql(): prompt + structured output
       validator.py          validate_sql()
       summarize.py          summarize()
-      audit.py              build_audit(), format_headline()
-      graph.py              LangGraph wiring and ask()
+      audit.py              build_audit(), format_headline(), format_answer()
+      response.py           the ask() response and audit, built from the final state
+      graph.py              LangGraph wiring (state, nodes, edges) and ask()
       ratelimit.py          in-memory request limiter
       api.py                FastAPI app
     evals/
@@ -398,22 +399,28 @@ class GeneratedSQL(BaseModel):
 
 On a retry the prompt also includes the previous SQL and the error message.
 
-**validate_sql(sql) → str** returns the safe SQL or raises `UnsafeSQL`. Checks, in order:
+**validate_sql(sql) → str** returns the safe SQL or raises `UnsafeSQL`. A query runs
+only if every part of it is on an **allowlist**:
 
-1. Parses as exactly one statement (Postgres dialect).
-2. The statement is a `SELECT` (set operations and CTEs of selects are allowed).
-3. No write or DDL node anywhere in the tree (insert, update, delete, merge, create,
-   drop, alter, truncate, `SELECT ... INTO`, `FOR UPDATE`, raw commands).
-4. Every table is one of the seven schema tables or a CTE defined in the query. No
+1. **Shape** — the text parses as exactly one statement (Postgres dialect), and the query
+   and every CTE and subquery in it is a plain `SELECT` (or a `UNION`/`INTERSECT`/`EXCEPT`
+   of them). No `SELECT ... INTO` and no `FOR UPDATE`/`FOR SHARE`. A write hidden in a
+   CTE, DDL or a raw command is rejected because it is not on the list.
+2. **Tables** — only the seven schema tables or CTEs defined in the query; no
    schema-qualified names.
-5. Every function is on an **allowlist**. Build the allowlist from what the metric SQL
-   and the eval's gold SQL need (aggregates, `COALESCE`, `NULLIF`, `ROUND`, `CAST`,
-   `CASE`, `DATE_TRUNC`, `EXTRACT`, `LOWER`, `UPPER`, window ranking functions) and add
-   to it deliberately. Unknown functions are rejected.
-6. Every column exists (`sqlglot.optimizer.qualify` against the parsed schema).
-7. A top-level `LIMIT` is added (200) if missing and lowered if larger.
+3. **Functions** — only those on the allowlist, built from what the metric SQL and the
+   eval's gold SQL need (aggregates, `COALESCE`, `NULLIF`, `ROUND`, `CAST`, `CASE`,
+   `DATE`, `DATE_TRUNC`, `EXTRACT`, `LOWER`, `UPPER`, window ranking functions) and
+   extended only deliberately.
+4. **Columns** — every column exists (`sqlglot.optimizer.qualify` against the parsed
+   schema).
+5. **Row limit** — a top-level `LIMIT 200` is added if missing and lowered if larger;
+   a limit that is not a plain number is kept inside an outer `LIMIT 200`.
 
-An allowlist is used for functions because a blocklist only stops the functions someone
+Every rejection names what *is* allowed (the seven tables, the allowed functions), so
+the one retry has what it needs to fix the query.
+
+Allowlists are used throughout because a blocklist only stops what someone
 thought of. The table and column maps come from `schema.py`, which parses
 `sql/schema.sql` with sqlglot — there is no database introspection code.
 
@@ -658,7 +665,7 @@ add a row.
 | Stateless clarify (resend with `metric_id`) | No conversation storage, no write access to the DB | LangGraph checkpointer + interrupt |
 | Whole schema in the prompt | Seven tables fit easily; retrieval would add a failure mode for no gain | Schema RAG with a vector store |
 | `schema.sql` as single source of truth | The DB, the prompt and the validator cannot drift apart | Runtime introspection |
-| Function allowlist in the validator | A blocklist only stops what someone thought of | Blocklist of dangerous functions |
+| Allowlists throughout the validator (query shape, tables, functions, columns) | A blocklist only stops what someone thought of; with allowlists anything new is rejected by default, and each rejection can say what is allowed | Blocklists of write nodes and dangerous functions |
 | Validator + read-only role + timeout | Each layer covers a different failure; none is trusted alone | Trusting the prompt, or the validator alone |
 | Headline number formatted by code | The one number users read first never passes through the model | Letting the summary carry the number |
 | Single-value answers built by code; summaries told what the rows are | A single number needs no LLM, so it cannot be misstated or cost tokens. A table summary given only rows named the revenue leader after the user chose "units sold"; the metric's name and definition (or the generator's explanation) tell it what the rows mean | Summarising every result from the rows alone |
@@ -676,11 +683,3 @@ add a row.
 | Generator's `cannot_answer` goes to `refuse` | "This data cannot answer that" is a refusal, not a SQL error, so it is not retried | Treating it as a failed attempt |
 
 ---
-
-## 10. Credit
-
-The free-form path's shape (generate → validate → execute → retry) and the
-result-comparison eval method follow the approach of
-[TourQuery](https://github.com/DefKd911/TourQuery). Say so in the README. Do not copy
-code from it: that repository has no licence, and every line here must be explainable by
-its author.

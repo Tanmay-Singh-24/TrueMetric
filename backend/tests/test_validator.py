@@ -43,22 +43,30 @@ REJECTED = {
     "drop": ("DROP TABLE orders", "only SELECT"),
     "delete inside a cte": (
         "WITH gone AS (DELETE FROM orders RETURNING order_id) SELECT order_id FROM gone",
-        "read-only",
+        "contains DELETE",
     ),
-    "select into": ("SELECT * INTO orders_copy FROM orders", "read-only"),
-    "for update": ("SELECT * FROM orders FOR UPDATE", "read-only"),
-    "unknown table": ("SELECT * FROM users", "unknown table"),
-    "pg_catalog.pg_roles": ("SELECT rolname FROM pg_catalog.pg_roles", "schema-qualified"),
+    "update inside a cte": (
+        "WITH changed AS (UPDATE orders SET order_status = 'x' RETURNING 1) SELECT * FROM changed",
+        "contains UPDATE",
+    ),
+    "select into": ("SELECT * INTO orders_copy FROM orders", "INTO"),
+    "for update": ("SELECT * FROM orders FOR UPDATE", "lock rows"),
+    "for share inside a subquery": (
+        "SELECT * FROM (SELECT * FROM orders FOR SHARE) AS locked",
+        "lock rows",
+    ),
+    "unknown table": ("SELECT * FROM users", "is not a table"),
+    "pg_catalog.pg_roles": ("SELECT rolname FROM pg_catalog.pg_roles", "bare table names"),
     "information_schema.tables": (
         "SELECT table_name FROM information_schema.tables",
-        "schema-qualified",
+        "bare table names",
     ),
-    "unknown column": ("SELECT seller_name FROM sellers", "column check"),
+    "unknown column": ("SELECT seller_name FROM sellers", "column does not exist"),
     "pg_sleep": ("SELECT pg_sleep(7)", "function"),
     "schema-qualified pg_sleep": ("SELECT pg_catalog.pg_sleep(7)", "function"),
     "table_to_xml": ("SELECT table_to_xml('orders', true, false, '')", "function"),
     "query_to_xml": ("SELECT query_to_xml('SELECT * FROM orders', true, false, '')", "function"),
-    "dblink": ("SELECT * FROM dblink('host=example.com', 'SELECT 1') AS t(x int)", "unknown table"),
+    "dblink": ("SELECT * FROM dblink('host=example.com', 'SELECT 1') AS t(x int)", "DBLINK"),
     "current_setting": ("SELECT current_setting('statement_timeout')", "function"),
     "version": ("SELECT version()", "function"),
 }
@@ -135,5 +143,14 @@ def test_a_rejected_function_is_named_in_postgres_spelling_with_the_allowed_list
     with pytest.raises(UnsafeSQL) as caught:
         validate_sql(sql)
     message = str(caught.value)
-    assert message.startswith("function not allowed: TO_CHAR.")
-    assert "Allowed functions: AVG, CASE, CAST, COALESCE, COUNT, DATE, DATE_TRUNC" in message
+    assert message.startswith("TO_CHAR is not an allowed function.")
+    assert "Functions: AVG, CASE, CAST, COALESCE, COUNT, DATE, DATE_TRUNC" in message
+
+
+def test_a_rejected_table_is_answered_with_the_tables_that_exist() -> None:
+    with pytest.raises(UnsafeSQL) as caught:
+        validate_sql("SELECT * FROM users")
+    assert (
+        "Tables: customers, order_items, order_payments, order_reviews, orders, products, sellers"
+        in str(caught.value)
+    )
