@@ -5,3 +5,4 @@ __pycache__/
 .venv/
 .neon
 .env.local
+dist/

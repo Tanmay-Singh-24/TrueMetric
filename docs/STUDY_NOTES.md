@@ -253,3 +253,39 @@
 - *How does CORS protect the API?* The browser only lets pages from the listed origins
   read responses. It does not stop scripts or curl, which is why the rate limit and the
   read-only database role exist.
+
+## Phase 7 — Frontend
+
+**What was built:**
+- A one-page Vite + React + TypeScript app in `frontend/`: `App.tsx` holds the state;
+  `AskBox`, `ExampleQuestions`, `AnswerCard`, `ClarifyOptions`, `ResultTable` and
+  `AuditPanel` each draw one part; `api.ts` makes the three calls; `types.ts` mirrors the
+  API's response models; one `styles.css`, with light and dark colours.
+
+**Why it is built this way:**
+- Plain `useState` and one `useEffect`: the page has a handful of values (server ready,
+  catalogue, question, result, error, loading), so a state library would add nothing.
+- On load the page calls `/health` every 3 seconds until it answers, showing "Waking the
+  server…", because Render's free tier sleeps when idle. Then it loads `/catalog` and
+  turns each metric's example into a clickable chip.
+- A clarify option resends the same question with that `metric_id`; the server stores no
+  conversation, so the page only has to remember the last question.
+- The audit panel shows what ran: the metric and its definition (or "Free-form query"),
+  the date range and filters, the notes, which check was applied, the time taken, and the
+  SQL in a collapsible block. The headline number comes from the server, formatted by code.
+- `VITE_API_URL` is the only setting; there are no keys in the frontend.
+
+**What went wrong:**
+- The LLM summary used Markdown (`**bed_bath_table**`), which showed as raw asterisks.
+  The summary prompt now asks for plain text.
+
+**Likely interview questions:**
+- *Why is there no conversation history in the page?* The design is stateless: each
+  question is answered on its own, and a clarification resends the question with the
+  chosen metric. Nothing has to be stored on the server.
+- *How does the page handle the 429 rate limit?* `api.ts` turns an HTTP 429 into a
+  friendly message asking the user to wait a moment; refusals and failures show the
+  server's own answer with a hint to rephrase.
+- *How is the result table kept usable on a phone?* The table sits in a container that
+  scrolls sideways on its own, so the page itself never scrolls horizontally; at 375 px
+  the page width equals the screen width.

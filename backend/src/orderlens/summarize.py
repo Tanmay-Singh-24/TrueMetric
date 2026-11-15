@@ -11,7 +11,8 @@ MAX_SUMMARY_ROWS = 20
 
 SUMMARY_PROMPT = """\
 Answer the question in one or two sentences, using only numbers that appear in the result
-rows below. Do not mention row limits, SQL or the database.
+rows below. Do not mention row limits, SQL or the database. Write plain text, without
+Markdown formatting.
 
 Question: {question}
 What the rows contain: {context}
