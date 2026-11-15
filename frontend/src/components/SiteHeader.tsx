@@ -1,15 +1,23 @@
+import type { CSSProperties } from "react";
+
 import { REPO_URL } from "../links";
+import { ThemeToggle } from "./ThemeToggle";
+
+// Heights of the four bars in the logo mark, in pixel blocks.
+const LOGO_BARS = [2, 4, 3, 5];
 
 export function SiteHeader() {
   return (
     <header className="site-header">
-      <a className="wordmark" href="#top">
-        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
-          <rect x="3" y="13" width="4" height="8" />
-          <rect x="10" y="8" width="4" height="13" />
-          <rect x="17" y="3" width="4" height="18" />
-        </svg>
-        TrueMetric
+      <a className="wordmark" href="#top" aria-label="TrueMetric, back to top">
+        <span className="logo-mark" aria-hidden="true">
+          {LOGO_BARS.map((height, index) => (
+            <i key={index} style={{ "--h": height, "--i": index } as CSSProperties} />
+          ))}
+        </span>
+        <span className="logo-text">
+          <b>True</b>Metric
+        </span>
       </a>
       <nav>
         <a href="#ask">Ask</a>
@@ -18,9 +26,12 @@ export function SiteHeader() {
           Evaluation
         </a>
       </nav>
-      <a className="pill-button" href={REPO_URL} target="_blank" rel="noreferrer">
-        View source
-      </a>
+      <div className="header-actions">
+        <ThemeToggle />
+        <a className="pill-button" href={REPO_URL} target="_blank" rel="noreferrer">
+          View source
+        </a>
+      </div>
     </header>
   );
 }

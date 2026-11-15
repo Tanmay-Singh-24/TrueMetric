@@ -34,6 +34,16 @@
   --art-ground-2: #6b4630;
   --art-ground-3: #b46a48;
   --art-ground-4: #ea9b7c;
+  --art-sun-1: #fde7bf;
+  --art-sun-2: #f7c46c;
+  --art-sun-3: #ef9445;
+  --art-moon-1: #ffffff;
+  --art-moon-2: #ffffff;
+  --art-moon-3: #ffffff;
+  --art-star: #ffffff;
+  --toggle-track: #cfd9ff;
+  --toggle-dots: rgba(255, 255, 255, 0.95);
+  --toggle-icon: #e2852f;
   --art-halftone: #7c8a5c;
   --art-halftone-faint: rgba(35, 35, 35, 0.1);
 
@@ -47,45 +57,53 @@
   background: var(--page);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --page: #1a1915;
-    --surface: #22211c;
-    --ink: #efeadf;
-    --muted: #a8a293;
-    --line: #efeadf;
-    --rule: rgba(239, 234, 223, 0.16);
-    --sage: #5d6849;
-    --sage-soft: #2b3024;
-    --sage-deep: #c9d4b0;
-    --periwinkle: #3b4683;
-    --terracotta: #f08a63;
-    --terracotta-soft: #3a2219;
-    --amber: #f0c060;
-    --amber-soft: #352a12;
-    --button: #efeadf;
-    --button-text: #1a1915;
+:root[data-theme="dark"] {
+  --page: #1a1915;
+  --surface: #22211c;
+  --ink: #efeadf;
+  --muted: #a8a293;
+  --line: #efeadf;
+  --rule: rgba(239, 234, 223, 0.16);
+  --sage: #5d6849;
+  --sage-soft: #2b3024;
+  --sage-deep: #c9d4b0;
+  --periwinkle: #3b4683;
+  --terracotta: #f08a63;
+  --terracotta-soft: #3a2219;
+  --amber: #f0c060;
+  --amber-soft: #352a12;
+  --button: #efeadf;
+  --button-text: #1a1915;
 
-    --art-sky: #1a1915;
-    --art-cloud-1: #232842;
-    --art-cloud-2: #364379;
-    --art-cloud-3: #5868b5;
-    --art-bar-1: #0b0b0a;
-    --art-bar-2: #46443e;
-    --art-bar-3: #8d897e;
-    --art-bar-4: #d9d2c2;
-    --art-hover-1: #2b3321;
-    --art-hover-2: #55603f;
-    --art-hover-3: #8fa06b;
-    --art-hover-4: #c9d4b0;
-    --art-ground-1: #0f0b08;
-    --art-ground-2: #3a281b;
-    --art-ground-3: #6e4630;
-    --art-ground-4: #a8654a;
-    --art-halftone: #a9b88a;
-    --art-halftone-faint: rgba(239, 234, 223, 0.1);
-    color-scheme: dark;
-  }
+  --art-sky: #1a1915;
+  --art-cloud-1: #232842;
+  --art-cloud-2: #364379;
+  --art-cloud-3: #5868b5;
+  --art-bar-1: #0b0b0a;
+  --art-bar-2: #46443e;
+  --art-bar-3: #8d897e;
+  --art-bar-4: #d9d2c2;
+  --art-hover-1: #2b3321;
+  --art-hover-2: #55603f;
+  --art-hover-3: #8fa06b;
+  --art-hover-4: #c9d4b0;
+  --art-ground-1: #0f0b08;
+  --art-ground-2: #3a281b;
+  --art-ground-3: #6e4630;
+  --art-ground-4: #a8654a;
+  --art-sun-1: #000000;
+  --art-sun-2: #000000;
+  --art-sun-3: #000000;
+  --art-moon-1: #4a5175;
+  --art-moon-2: #b9c1e0;
+  --art-moon-3: #f1f3ff;
+  --art-star: #e9edff;
+  --toggle-track: #1f2547;
+  --toggle-dots: #e9edff;
+  --toggle-icon: #c9cfe6;
+  --art-halftone: #a9b88a;
+  --art-halftone-faint: rgba(239, 234, 223, 0.1);
+  color-scheme: dark;
 }
 
 * {
@@ -173,28 +191,134 @@ em {
 .wordmark {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-family: var(--serif);
-  font-size: 1.35rem;
+  gap: 10px;
+  font-family: "Space Grotesk", var(--sans);
+  font-size: 1.3rem;
+  letter-spacing: -0.03em;
   text-decoration: none;
 }
 
-.wordmark svg {
-  fill: var(--ink);
+.logo-text b {
+  font-weight: 700;
 }
 
-.wordmark rect {
-  transform-box: fill-box;
-  transform-origin: bottom;
-  transition: transform 300ms steps(3);
+/* Four bars made of stacked pixel blocks; they rise on load and bounce on hover. */
+.logo-mark {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 22px;
 }
 
-.wordmark:hover rect:nth-child(1) {
-  transform: scaleY(1.9);
+.logo-mark i {
+  width: 5px;
+  height: calc(var(--h) * 4px);
+  background: repeating-linear-gradient(to top, var(--ink) 0 3px, transparent 3px 4px);
+  animation: logo-rise 700ms steps(5) backwards;
+  animation-delay: calc(var(--i) * 90ms);
 }
 
-.wordmark:hover rect:nth-child(3) {
-  transform: scaleY(0.55);
+.logo-mark i:last-child {
+  background: repeating-linear-gradient(to top, var(--sage-deep) 0 3px, transparent 3px 4px);
+}
+
+.wordmark:hover .logo-mark i {
+  animation: logo-bounce 520ms steps(4) infinite alternate;
+  animation-delay: calc(var(--i) * -130ms);
+}
+
+@keyframes logo-rise {
+  from {
+    height: 0;
+  }
+}
+
+@keyframes logo-bounce {
+  to {
+    height: calc((6 - var(--h)) * 4px);
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* The theme switch: a sky with clouds by day, stars by night; the knob moves in steps. */
+.theme-toggle {
+  position: relative;
+  flex-shrink: 0;
+  width: 56px;
+  height: 30px;
+  padding: 0;
+  background: var(--toggle-track);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.theme-toggle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: radial-gradient(var(--toggle-dots) 1px, transparent 1.6px);
+  background-size: 7px 7px;
+  opacity: 0.6;
+}
+
+.theme-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: var(--toggle-icon);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  transition: transform 320ms steps(5);
+}
+
+.theme-toggle.is-dark .theme-knob {
+  transform: translateX(26px);
+}
+
+.theme-knob svg {
+  fill: currentColor;
+}
+
+.theme-toggle:hover .theme-knob svg {
+  animation: knob-spin 1.6s steps(8) infinite;
+}
+
+@keyframes knob-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Switching theme reveals the new one in a circle growing from the switch (browsers with
+   view transitions; others just switch). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: theme-reveal 650ms steps(12) both;
+}
+
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--reveal-x, 50%) var(--reveal-y, 0));
+  }
+  to {
+    clip-path: circle(150vmax at var(--reveal-x, 50%) var(--reveal-y, 0));
+  }
 }
 
 .site-header nav {
@@ -234,10 +358,32 @@ section[id] {
 
 /* ---------------------------------------------------------------- hero */
 
+.hero-wrap {
+  position: relative;
+  margin: 0 -16px;
+  padding: 0 16px;
+  overflow: hidden;
+}
+
+.hero-wrap.is-over-sun {
+  cursor: pointer;
+}
+
+.hero-sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
 .hero {
+  position: relative;
+  z-index: 1;
   max-width: 820px;
   margin: 0 auto;
-  padding: clamp(48px, 8vw, 88px) 0 24px;
+  padding: clamp(56px, 9vw, 104px) 0 56px;
   text-align: center;
 }
 
@@ -247,11 +393,44 @@ section[id] {
   letter-spacing: -0.01em;
 }
 
+/* Each headline word drops in, in pixel steps; hovering one makes it hop. */
+.headline-words .word {
+  display: inline-block;
+  animation: word-drop 640ms steps(6) backwards;
+  animation-delay: calc(120ms + var(--i) * 85ms);
+  transition:
+    transform 200ms steps(3),
+    color 200ms;
+}
+
+.headline-words .italic {
+  font-style: italic;
+}
+
+.headline-words .word:hover {
+  color: var(--sage-deep);
+  transform: translateY(-6px) rotate(-3deg);
+}
+
+@keyframes word-drop {
+  from {
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(-22px);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: none;
+  }
+}
+
 .lede {
   max-width: 620px;
   margin: 0 auto 32px;
   font-size: 1.05rem;
   color: var(--muted);
+  text-shadow:
+    0 0 6px var(--page),
+    0 0 12px var(--page);
 }
 
 .notice {
@@ -317,6 +496,8 @@ section[id] {
 }
 
 .examples-label {
+  padding: 2px 6px;
+  background: var(--page);
   font-family: var(--mono);
   font-size: 0.75rem;
   letter-spacing: 0.08em;
@@ -328,7 +509,9 @@ section[id] {
   padding: 5px 12px;
   font-size: 0.85rem;
   color: var(--ink);
-  background: transparent;
+  background: var(--page);
+  animation: chip-pop 420ms steps(4) backwards;
+  animation-delay: calc(500ms + var(--i) * 60ms);
   border: 1px solid var(--rule);
   border-radius: 999px;
   transition:
@@ -339,6 +522,17 @@ section[id] {
 .chip:hover:not(:disabled) {
   background: var(--sage-soft);
   border-color: var(--sage-deep);
+}
+
+@keyframes chip-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ---------------------------------------------------------------- results */
@@ -1111,7 +1305,7 @@ pre {
   /* On a phone the art and heading stay pinned under the header while the steps
      scroll beneath them. */
   .how-sticky {
-    top: 58px;
+    top: 70px;
     z-index: 2;
     padding: 12px 0 10px;
     background: var(--page);

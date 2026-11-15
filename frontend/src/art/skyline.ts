@@ -3,7 +3,7 @@
 // `image-rendering: pixelated`, so every art pixel is a crisp square on screen.
 
 import { MONTHLY_REVENUE } from "../data";
-import { clamp, ditherPick, fractalNoise, prefersReducedMotion, readPalette, smoothstep } from "./dither";
+import { clamp, ditherPick, fractalNoise, onThemeChange, prefersReducedMotion, readPalette, smoothstep } from "./dither";
 
 const FRAME_MS = 1000 / 30;
 const RISE_MS = 1200;
@@ -196,7 +196,6 @@ function listen(skyline: Skyline): () => void {
   const visibility = new IntersectionObserver(([entry]) => {
     skyline.visible = entry.isIntersecting;
   });
-  const darkMode = window.matchMedia("(prefers-color-scheme: dark)");
   const recolor = () => {
     skyline.palettes = readPalettes(canvas);
     render(skyline, performance.now());
@@ -205,7 +204,7 @@ function listen(skyline: Skyline): () => void {
   const leave = () => pointAt(skyline, null);
   resizeObserver.observe(canvas);
   visibility.observe(canvas);
-  darkMode.addEventListener("change", recolor);
+  const stopWatchingTheme = onThemeChange(recolor);
   canvas.addEventListener("pointermove", move);
   canvas.addEventListener("pointerdown", move);
   canvas.addEventListener("pointerleave", leave);
@@ -221,7 +220,7 @@ function listen(skyline: Skyline): () => void {
     cancelAnimationFrame(frame);
     resizeObserver.disconnect();
     visibility.disconnect();
-    darkMode.removeEventListener("change", recolor);
+    stopWatchingTheme();
     canvas.removeEventListener("pointermove", move);
     canvas.removeEventListener("pointerdown", move);
     canvas.removeEventListener("pointerleave", leave);

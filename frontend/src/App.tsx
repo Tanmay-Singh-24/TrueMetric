@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 
 import { askQuestion, checkHealth, getCatalog } from "./api";
 import { AnswerCard } from "./components/AnswerCard";
-import { AskBox } from "./components/AskBox";
 import { AuditPanel } from "./components/AuditPanel";
 import { ClarifyOptions } from "./components/ClarifyOptions";
 import { DataSkyline } from "./components/DataSkyline";
-import { ExampleQuestions } from "./components/ExampleQuestions";
 import { Facts } from "./components/Facts";
+import { Hero } from "./components/Hero";
 import { HowItWorks } from "./components/HowItWorks";
 import { JoinTrap } from "./components/JoinTrap";
 import { MetricTicker } from "./components/MetricTicker";
@@ -92,31 +91,14 @@ export function App() {
     <div id="top">
       <SiteHeader />
       <main>
-        <section className="hero" id="ask">
-          <h1>
-            ASK <em>in plain English.</em> VERIFIED CODE <em>does the</em> MATH.
-          </h1>
-          <p className="lede">
-            Questions about 99,441 orders from a Brazilian online store (2016–2018). Verified
-            metrics answer first; anything else becomes SQL that is checked and run read-only.
-          </p>
-
-          {!serverReady && (
-            <p className="notice">Waking the server, this can take up to a minute…</p>
-          )}
-
-          <AskBox
-            question={question}
-            disabled={busy}
-            onChange={setQuestion}
-            onSubmit={() => ask(question)}
-          />
-          <ExampleQuestions
-            examples={catalog.map((metric) => metric.example)}
-            disabled={busy}
-            onPick={(example) => ask(example)}
-          />
-        </section>
+        <Hero
+          serverReady={serverReady}
+          busy={busy}
+          question={question}
+          catalog={catalog}
+          onQuestionChange={setQuestion}
+          onAsk={(text) => ask(text)}
+        />
 
         <section id="results" className="results" aria-live="polite">
           {loading && <PixelLoader />}

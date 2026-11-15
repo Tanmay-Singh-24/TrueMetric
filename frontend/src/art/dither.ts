@@ -26,7 +26,8 @@ export function smoothstep(edge0: number, edge1: number, x: number): number {
   return t * t * (3 - 2 * t);
 }
 
-function hash(x: number, y: number): number {
+/** A repeatable pseudo-random number between 0 and 1 for a grid position. */
+export function hash(x: number, y: number): number {
   let h = Math.imul(x, 374761393) + Math.imul(y, 668265263);
   h = Math.imul(h ^ (h >>> 13), 1274126177);
   return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
@@ -76,4 +77,16 @@ export function readPalette(element: Element, names: string[]): number[] {
 
 export function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/** Calls back when the page switches between light and dark; returns a stop function. */
+export function onThemeChange(callback: () => void): () => void {
+  // The theme is the data-theme attribute on <html>, set by the switch in the header.
+  const observer = new MutationObserver(callback);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  return () => observer.disconnect();
+}
+
+export function isDarkTheme(): boolean {
+  return document.documentElement.dataset.theme === "dark";
 }

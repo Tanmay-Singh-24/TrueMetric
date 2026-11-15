@@ -3,7 +3,7 @@
 // Each shape is a signed distance function: negative inside, positive outside. A dot's
 // size comes from how far inside the shape its centre is.
 
-import { clamp, prefersReducedMotion, smoothstep } from "./dither";
+import { clamp, onThemeChange, prefersReducedMotion, smoothstep } from "./dither";
 
 type Shape = (x: number, y: number) => number;
 
@@ -168,14 +168,13 @@ export function startHalftone(
   const visibility = new IntersectionObserver(([entry]) => {
     visible = entry.isIntersecting;
   });
-  const darkMode = window.matchMedia("(prefers-color-scheme: dark)");
   const recolor = () => {
     readColors(halftone);
     lastKey = "";
   };
   resizeObserver.observe(canvas);
   visibility.observe(section);
-  darkMode.addEventListener("change", recolor);
+  const stopWatchingTheme = onThemeChange(recolor);
   let frame = requestAnimationFrame(function loop(now) {
     frame = requestAnimationFrame(loop);
     if (!visible || now - lastPaint < FRAME_MS) {
@@ -198,6 +197,6 @@ export function startHalftone(
     cancelAnimationFrame(frame);
     resizeObserver.disconnect();
     visibility.disconnect();
-    darkMode.removeEventListener("change", recolor);
+    stopWatchingTheme();
   };
 }

@@ -421,3 +421,39 @@
   for reduced motion get one still frame.
 - *Is the decoration honest?* Yes: every number on the page, including the art, comes from
   the same reference values the tests check, and clicking a bar asks the real question.
+
+## Landing page — clouds, theme switch, logo
+
+**What was built:**
+- `art/clouds.ts`: dithered clouds behind the headline that gather around the search bar,
+  a sun by day or a crescent moon and twinkling stars by night, and a pointer "wind" that
+  clears a gap in the clouds. Clicking the sun or moon switches the theme.
+- A light/dark switch in the header (`ThemeToggle`, `theme.ts`). The new theme is revealed
+  in a stepped circle growing from the switch, and the choice is remembered.
+- A Space Grotesk wordmark with a pixel equaliser mark; headline words that drop in and hop
+  on hover; a placeholder that types real example questions; chips that pop in.
+
+**Why it is built this way:**
+- The theme is one attribute, `<html data-theme>`. The CSS colours and all three canvases
+  follow it, so nothing has to pass theme state around in React. A tiny script in
+  `index.html` sets it before the first paint (saved choice, else the system setting),
+  which avoids a flash of the wrong theme.
+- The canvases read their colours from CSS variables and redraw when a MutationObserver
+  sees `data-theme` change; that is how the sun becomes a moon.
+- The reveal uses the browser's View Transitions API where it exists; elsewhere the theme
+  simply switches. Reduced-motion visitors get no reveal and still skies.
+- Cloud pixels are transparent where there is no cloud, so the page colour shows through
+  and the sky works on both themes. The cloud density is weighted by distance to the search
+  bar (measured from the page each frame), so the bar always sits in the clouds.
+
+**What went wrong:**
+- At 1200 px the sun sat on the end of the headline; it moved up and further right.
+- On phones the taller header (with the switch) covered the pinned "How it works" bar;
+  its sticky offset moved from 58 px to 70 px.
+
+**Likely interview questions:**
+- *How does the page avoid a flash of the wrong theme?* An inline script in the head sets
+  `data-theme` before anything paints; React then reads the attribute instead of guessing.
+- *How does the wind work?* Each frame, the cloud density near the pointer is reduced by a
+  Gaussian bump; the bump's position eases towards the pointer, so the gap trails behind
+  it like moving air.
