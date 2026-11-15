@@ -335,3 +335,39 @@
 - *How is the result table kept usable on a phone?* The table sits in a container that
   scrolls sideways on its own, so the page itself never scrolls horizontally; at 375 px
   the page width equals the screen width.
+
+## Phase 8 — CI and README (the parts that need no accounts)
+
+**What was built:**
+- `.github/workflows/ci.yml`: on every push, ruff and the tests that need no database for
+  the backend, and `tsc` and the build for the frontend.
+- The README: what the project is, the honest evaluation result, the row-multiplication
+  example, the flow, the safety layers, the data decisions, how to run it, known limits.
+- Before this phase: the free-form prompt got the category names (the eval's one gap),
+  and the project was renamed from OrderLens to TrueMetric, including the database role.
+
+**Why it is built this way:**
+- CI installs exact versions from `uv.lock` and `package-lock.json` (`uv sync --frozen`,
+  `npm ci`), so a passing build means the locked versions work.
+- CI runs only the tests that need no database or LLM: it has no secrets, and LLM
+  behaviour is measured by the eval, not by unit tests.
+- The README leads with what the eval measured: accuracy tied with free-form SQL, and the
+  real gains are clarification, code-built numbers, the audit trail and verified
+  definitions. No accuracy improvement is claimed.
+- Renaming a Postgres role keeps its grants, settings and SCRAM password, because those
+  belong to the role's internal id, not its name.
+
+**What went wrong:**
+- After the role rename, `DATABASE_URL` in `.env` still named the old user. Tests and the
+  screenshot ran with the username swapped in memory until the `.env` is updated.
+
+**Likely interview questions:**
+- *So did the project work?* The safety and verification parts did: no wrong metric ran,
+  ambiguity got a clarifying question, and every number is traceable. The accuracy gain I
+  expected did not show up, because the model followed the prompt's warning about the
+  join trap; I report that rather than tune the questions.
+- *What does CI check, and what does it not?* Formatting, lint, the validator, scoring,
+  router checks, API and rate-limit tests, and the frontend build. It does not touch the
+  database or the LLM; those are covered by the database tests run locally and the eval.
+- *How did you rename the database user without downtime?* `ALTER ROLE ... RENAME TO`
+  keeps the password and permissions; only the connection string's username changes.
