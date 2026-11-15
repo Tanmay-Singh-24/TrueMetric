@@ -3,6 +3,7 @@
 from pydantic import BaseModel
 
 from orderlens.llm import invoke_structured
+from orderlens.lookups import known_categories
 from orderlens.metrics.catalog import METRICS
 from orderlens.schema import SCHEMA_SQL
 
@@ -31,15 +32,17 @@ METRIC_DEFINITIONS = "\n".join(
     for metric in METRICS
 )
 
-SYSTEM_PROMPT = f"""\
+SYSTEM_PROMPT = """\
 You write one PostgreSQL SELECT statement that answers a question about an online store's
 orders in Brazil, placed between 2016-09-04 and 2018-10-17.
 
 Database schema:
-{SCHEMA_SQL}
+{schema}
 Business definitions:
-{SHARED_DEFINITIONS}
-{METRIC_DEFINITIONS}
+{shared_definitions}
+{metric_definitions}
+
+Product category names (products.category), exactly as stored: {categories}
 
 Return one SELECT statement in `sql`. If this data cannot answer the question, set `sql`
 to null and say why in `cannot_answer`. In `explanation`, say in one sentence what the
@@ -55,11 +58,23 @@ Error:
 {error}"""
 
 
+def system_prompt() -> str:
+    """The generator's system prompt: schema, business definitions and category names."""
+    # The category names are the same list the router sees, so a question that says
+    # "watches and gifts" can be matched to watches_gifts on either path.
+    return SYSTEM_PROMPT.format(
+        schema=SCHEMA_SQL,
+        shared_definitions=SHARED_DEFINITIONS,
+        metric_definitions=METRIC_DEFINITIONS,
+        categories=", ".join(sorted(known_categories())),
+    )
+
+
 def generate_sql(
     question: str, previous_sql: str | None = None, error: str | None = None
 ) -> GeneratedSQL:
     """Ask the LLM for SQL answering the question; on a retry, show it what failed."""
-    messages = [("system", SYSTEM_PROMPT), ("human", question)]
+    messages = [("system", system_prompt()), ("human", question)]
     if previous_sql is not None:
         messages.append(("human", RETRY_PROMPT.format(previous_sql=previous_sql, error=error)))
     return invoke_structured(GeneratedSQL, messages)

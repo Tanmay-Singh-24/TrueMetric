@@ -385,8 +385,9 @@ prompt names the forced metric). No conversation state is stored.
 
 **generate_sql** — one LLM call. The prompt contains the full text of `sql/schema.sql`, a
 short glossary of the business definitions from METRICS.md (valid orders, customers are
-`customer_unique_id`, never join items and payments), and Postgres notes added only when
-an eval failure justifies them. Output:
+`customer_unique_id`, never join items and payments), the product category names (the
+same list the router sees), and Postgres notes added only when an eval failure justifies
+them. Output:
 
 ```python
 class GeneratedSQL(BaseModel):
@@ -665,6 +666,7 @@ add a row.
 | One LLM provider, one model | Nothing to compare, nothing to switch; fewer moving parts | Provider abstraction |
 | Baseline gets the glossary | Otherwise the eval would only show that the baseline did not know the definitions | Baseline with schema only |
 | Metric definitions in the free-form prompt, taken from the catalogue | The baseline knows every business rule the metrics use, so the eval measures SQL correctness only, not knowledge of the definitions; generating them from `catalog.py` keeps them in step | The shared definitions alone |
+| Category names in the free-form prompt | The first eval's only head-to-head difference was the generator guessing `'watches', 'gifts'` for `watches_gifts`; the full system's own fallback had the same gap, so this is a product fix | Leaving the list to the router only |
 | psycopg without an ORM | The project is about SQL; an ORM would hide it | SQLAlchemy |
 | Category translated at load time | One less table and join in every query, for both paths | Keeping the translation table |
 | Settings from plain environment variables | Eight values need no library; `uv run --env-file .env` loads them locally, so LangSmith sees the same variables as the app | `pydantic-settings` (an extra dependency) |

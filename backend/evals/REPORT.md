@@ -49,6 +49,13 @@ free-form fallback) right than free-form SQL alone?
 26 of 28.** That is a smaller difference than the project set out to show, and with one
 run per configuration, one question is within run-to-run variation.
 
+> **Note added after the run.** On accuracy the head-to-head is effectively a tie. The one
+> gap (m08) came from a prompt difference: the router's prompt listed the category names
+> and the free-form prompt did not. Because the full system's own free-form fallback had
+> the same gap, the category names were added to the free-form prompt after this run, as
+> a product fix. The numbers above are as measured, before that fix; the next run will
+> measure its effect.
+
 ### Where the difference came from
 
 - **m08** ("monthly revenue from watches and gifts, first half of 2018") is the only
