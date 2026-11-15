@@ -47,6 +47,7 @@ flowchart TD
     R -- refuse --> X([Refuse])
     R -- freeform --> G[generate_sql<br/>LLM]
     G --> V[validate_sql<br/>sqlglot]
+    G -- data cannot answer --> X
     V -- ok --> E[execute_sql<br/>read-only role]
     V -- error, 1st attempt --> G
     E -- error, 1st attempt --> G
@@ -655,6 +656,8 @@ add a row.
 | Settings from plain environment variables | Eight values need no library; `uv run --env-file .env` loads them locally, so LangSmith sees the same variables as the app | `pydantic-settings` (an extra dependency) |
 | Database setup in one transaction | A failed load leaves the previous data in place, and rerunning is always safe | Committing table by table |
 | `openai/gpt-oss-120b`, reasoning effort low | `llama-3.3-70b-versatile` was shut down on 16 Aug 2026. gpt-oss-120b was chosen for SQL accuracy; low reasoning effort limits token use under the free tier's 8,000 tokens a minute | `qwen/qwen3.8-27b` (smaller), `openai/gpt-oss-20b` (weaker) |
+| LLM and connection errors end the run in `ask()` | A rewritten query cannot fix them, so they are not graph edges; `llm.py` turns Groq errors into `LLMRateLimited` and `LLMError`, so no other module knows the provider | Extra failure edges from every LLM node |
+| Generator's `cannot_answer` goes to `refuse` | "This data cannot answer that" is a refusal, not a SQL error, so it is not retried | Treating it as a failed attempt |
 
 ---
 

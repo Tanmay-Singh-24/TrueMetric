@@ -12,20 +12,13 @@ import argparse
 import logging
 
 import psycopg
+from terminal import print_table
 
 from orderlens.db import run_query
 from orderlens.freeform import GeneratedSQL, generate_sql
 from orderlens.validator import UnsafeSQL, validate_sql
 
 MAX_ATTEMPTS = 2
-
-
-def print_table(columns: list[str], rows: list[list]) -> None:
-    """Print rows under their column names, each column right-aligned."""
-    lines = [columns, *rows]
-    widths = [max(len(str(line[index])) for line in lines) for index in range(len(columns))]
-    for line in lines:
-        print("  ".join(str(value).rjust(width) for value, width in zip(line, widths, strict=True)))
 
 
 def next_attempt(

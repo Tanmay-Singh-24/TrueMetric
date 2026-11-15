@@ -171,3 +171,49 @@
 - *How many tokens does a free-form call cost?* About 1,500–1,650 tokens, almost all of
   it the prompt (schema plus definitions, about 1,440 tokens). At 8,000 tokens a minute
   that is about five calls a minute.
+
+## Phase 4 — Router and graph
+
+**What was built:**
+- `router.py`: `RouterDecision`, the router prompt, `route_question()`, `check_decision()`
+  and `build_clarification()`. `summarize.py`: the summary call with a fixed fallback.
+- `graph.py`: the nine LangGraph nodes, the edges of the flow diagram, and `ask()`, the
+  one entry point. `scripts/ask.py` runs it from the terminal.
+- `llm.py` now turns Groq errors into `LLMRateLimited` and `LLMError`, so no other module
+  imports the provider.
+
+**Why it is built this way:**
+- The router must extract every filter the question mentions, even ones the chosen
+  metric does not accept. Code then decides: "repeat rate in SP" carries `state=SP`,
+  `validate_args` rejects it for `repeat_customer_rate`, and the question goes to
+  free-form instead of being answered for all of Brazil.
+- The clarifying question and its options are built by code from the catalogue, so the
+  options are always real metrics. Picking one resends the question with `metric_id`,
+  and code fixes the route to that metric: no conversation is stored.
+- Nodes are thin and call plain functions, so the router checks, clarification and audit
+  are tested with fake decisions and no LLM. Only `graph.py` imports LangGraph.
+- LLM and connection errors are exceptions that end the run in `ask()`: a 429 gives the
+  "daily limit" message, anything else a plain failure. Only bad SQL or a timeout gets
+  the graph's one retry. A failed summary falls back to "Here are the results."
+- The headline and the audit are built by code in `ask()` from the final state.
+
+**What went wrong:**
+- Mid-phase, the Mac's DNS stopped resolving the Neon host while public DNS still did.
+  Database checks ran with `PGHOSTADDR` set to the public-DNS address for those commands
+  only; nothing in the code or `.env` changed.
+- The summary does not know which metric produced the rows. After the user chose "Top
+  categories by units sold", it still named the revenue leader. Reported for review.
+
+**Likely interview questions:**
+- *What stops the router from answering a question it cannot answer exactly?*
+  `check_decision`: an unknown metric, a filter the metric does not accept, or an invalid
+  value sends the question to free-form. The rule is "fall back rather than guess".
+- *How is ambiguity handled without a confidence score?* The router may return `clarify`
+  with two or three candidate metrics; code checks they exist and writes the question
+  from their names. A confidence score from an LLM is not calibrated; a list of
+  candidates is observable and testable.
+- *Why does a 429 not get retried?* The free tier's limit is per minute and per day, so
+  retrying at once only wastes a request. The user gets a clear message instead.
+- *What does one question cost in tokens?* About 1,800–2,000 on the metric path and
+  about 3,400–3,500 on the free-form path, with the summary. The router prompt alone is
+  about 1,450 input tokens.

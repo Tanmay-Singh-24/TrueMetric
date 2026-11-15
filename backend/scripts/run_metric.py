@@ -8,6 +8,8 @@ Usage:
 import argparse
 import time
 
+from terminal import print_table
+
 from orderlens.audit import build_audit, format_headline
 from orderlens.metrics.catalog import METRICS
 from orderlens.metrics.registry import (
@@ -29,14 +31,6 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--category", help="product category, e.g. health_beauty")
     parser.add_argument("--top-n", dest="top_n", type=int, help="rows for ranked metrics")
     return parser.parse_args()
-
-
-def print_table(columns: list[str], rows: list[list]) -> None:
-    """Print rows under their column names, each column right-aligned."""
-    lines = [columns, *rows]
-    widths = [max(len(str(line[index])) for line in lines) for index in range(len(columns))]
-    for line in lines:
-        print("  ".join(str(value).rjust(width) for value, width in zip(line, widths, strict=True)))
 
 
 def main() -> None:
