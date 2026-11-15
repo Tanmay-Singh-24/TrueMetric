@@ -649,6 +649,7 @@ add a row.
 | Audit trail in the response and logs only | The app needs no write access to the database | A `query_log` table |
 | One LLM provider, one model | Nothing to compare, nothing to switch; fewer moving parts | Provider abstraction |
 | Baseline gets the glossary | Otherwise the eval would only show that the baseline did not know the definitions | Baseline with schema only |
+| Metric definitions in the free-form prompt, taken from the catalogue | The baseline knows every business rule the metrics use, so the eval measures SQL correctness only, not knowledge of the definitions; generating them from `catalog.py` keeps them in step | The shared definitions alone |
 | psycopg without an ORM | The project is about SQL; an ORM would hide it | SQLAlchemy |
 | Category translated at load time | One less table and join in every query, for both paths | Keeping the translation table |
 | Settings from plain environment variables | Eight values need no library; `uv run --env-file .env` loads them locally, so LangSmith sees the same variables as the app | `pydantic-settings` (an extra dependency) |

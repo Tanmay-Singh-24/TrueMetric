@@ -11,30 +11,32 @@ from orderlens.schema import TABLE_COLUMNS
 MAX_ROWS = 200
 
 # An allowlist, not a blocklist: a blocklist only stops the functions someone thought
-# of. Entries are sqlglot node types. A function sqlglot does not recognise becomes
-# exp.Anonymous (pg_sleep, dblink, table_to_xml, ...) and is therefore never allowed.
-ALLOWED_FUNCTIONS = (
-    exp.Count,
-    exp.Sum,
-    exp.Avg,
-    exp.Min,
-    exp.Max,
-    exp.Coalesce,
-    exp.Nullif,
-    exp.Round,
-    exp.Cast,
-    exp.Case,
-    exp.If,  # sqlglot stores each WHEN branch of a CASE as an If node
-    exp.TimestampTrunc,  # date_trunc on a timestamp
-    exp.DateTrunc,  # date_trunc on a date
-    exp.Extract,
-    exp.Lower,
-    exp.Upper,
-    exp.RowNumber,
-    exp.Rank,
-    exp.DenseRank,
-    exp.Exists,
-)
+# of. Keys are sqlglot node types, values the Postgres name shown in error messages. A
+# function sqlglot does not recognise becomes exp.Anonymous (pg_sleep, dblink,
+# table_to_xml, ...) and is therefore never allowed.
+ALLOWED_FUNCTIONS = {
+    exp.Count: "COUNT",
+    exp.Sum: "SUM",
+    exp.Avg: "AVG",
+    exp.Min: "MIN",
+    exp.Max: "MAX",
+    exp.Coalesce: "COALESCE",
+    exp.Nullif: "NULLIF",
+    exp.Round: "ROUND",
+    exp.Cast: "CAST",
+    exp.Case: "CASE",
+    exp.If: "CASE",  # sqlglot stores each WHEN branch of a CASE as an If node
+    exp.TimestampTrunc: "DATE_TRUNC",  # date_trunc on a timestamp
+    exp.DateTrunc: "DATE_TRUNC",  # date_trunc on a date
+    exp.Extract: "EXTRACT",
+    exp.Lower: "LOWER",
+    exp.Upper: "UPPER",
+    exp.RowNumber: "ROW_NUMBER",
+    exp.Rank: "RANK",
+    exp.DenseRank: "DENSE_RANK",
+    exp.Exists: "EXISTS",
+}
+ALLOWED_FUNCTION_NAMES = ", ".join(sorted(set(ALLOWED_FUNCTIONS.values())))
 
 # Nodes that write, change the schema, lock rows or run raw commands. Most can only
 # appear at the top level, which the SELECT check already stops, but Postgres allows
@@ -100,9 +102,13 @@ def check_functions(statement: exp.Expression) -> None:
         # AND and OR are operators, but sqlglot models them as function nodes.
         if isinstance(function, exp.Connector):
             continue
-        if not isinstance(function, ALLOWED_FUNCTIONS):
-            name = function.name if isinstance(function, exp.Anonymous) else function.sql_name()
-            raise UnsafeSQL(f"function not allowed: {name.upper()}")
+        if type(function) not in ALLOWED_FUNCTIONS:
+            # sqlglot's own names differ from Postgres (TO_CHAR is TIME_TO_STR), so the
+            # name is taken from the node written back out as Postgres SQL.
+            name = function.sql(dialect="postgres").split("(")[0]
+            raise UnsafeSQL(
+                f"function not allowed: {name}. Allowed functions: {ALLOWED_FUNCTION_NAMES}"
+            )
 
 
 def check_columns(statement: exp.Expression) -> None:

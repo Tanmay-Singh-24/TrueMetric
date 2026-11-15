@@ -127,3 +127,12 @@ def test_a_limit_that_is_not_a_plain_number_is_kept_inside_an_outer_limit() -> N
     result = validate_sql("SELECT seller_id FROM sellers LIMIT 5::int")
     assert "LIMIT CAST(5 AS INT)" in result
     assert result.endswith(f"LIMIT {MAX_ROWS}")
+
+
+def test_a_rejected_function_is_named_in_postgres_spelling_with_the_allowed_list() -> None:
+    sql = "SELECT TO_CHAR(order_purchase_timestamp, 'YYYY') FROM orders"
+    with pytest.raises(UnsafeSQL) as caught:
+        validate_sql(sql)
+    message = str(caught.value)
+    assert message.startswith("function not allowed: TO_CHAR.")
+    assert "Allowed functions: AVG, CASE, CAST, COALESCE, COUNT, DATE_TRUNC" in message
